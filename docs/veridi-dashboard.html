@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veridi — Client Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#05080F;
+  --deep:#07090F;
+  --panel:#0C1220;
+  --panel2:#0F1828;
+  --panel3:#111E30;
+  --rail:#152033;
+  --border:#1A2840;
+  --border2:#1F3050;
+  --teal:#00D4B4;
+  --teal-dim:#009E87;
+  --teal-pale:rgba(0,212,180,0.07);
+  --teal-glow:rgba(0,212,180,0.2);
+  --gold:#F0A830;
+  --gold-pale:rgba(240,168,48,0.08);
+  --red:#F04040;
+  --red-pale:rgba(240,64,64,0.08);
+  --green:#22C55E;
+  --green-pale:rgba(34,197,94,0.08);
+  --blue:#3B82F6;
+  --text:#E2EAF4;
+  --text2:#7A9AB8;
+  --text3:#334766;
+  --sidebar-w:240px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--void);color:var(--text);font-family:'Syne',sans-serif;display:flex;cursor:default}
+
+/* ── SIDEBAR ────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--deep);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;overflow:hidden;
+  position:relative;z-index:10;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;right:0;width:1px;height:100%;
+  background:linear-gradient(to bottom,transparent,var(--teal-dim),transparent);
+  opacity:0.3;
+}
+.sb-logo{
+  padding:24px 20px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.sb-logo-mark{
+  width:30px;height:30px;background:var(--teal);border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--void);
+  flex-shrink:0;
+}
+.sb-logo-text{font-weight:800;font-size:18px;letter-spacing:-0.02em}
+.sb-logo-text .dot{color:var(--teal)}
+.sb-org{
+  padding:12px 16px;margin:12px 12px 0;
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:4px;display:flex;align-items:center;gap:10px;
+}
+.sb-org-avatar{
+  width:28px;height:28px;border-radius:3px;
+  background:linear-gradient(135deg,var(--teal-dim),#006655);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--void);flex-shrink:0;
+}
+.sb-org-name{font-size:12px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-org-plan{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:0.1em}
+.sb-chevron{color:var(--text3);font-size:10px;cursor:pointer}
+
+.sb-nav{padding:16px 8px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sb-section{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:0.24em;text-transform:uppercase;
+  color:var(--text3);padding:12px 10px 6px;
+}
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:4px;
+  font-size:13px;font-weight:500;
+  color:var(--text2);cursor:pointer;
+  transition:background .18s,color .18s;
+  position:relative;
+}
+.sb-item:hover{background:var(--panel);color:var(--text)}
+.sb-item.active{background:var(--panel2);color:var(--teal)}
+.sb-item.active::before{
+  content:'';position:absolute;left:0;top:4px;bottom:4px;
+  width:2px;background:var(--teal);border-radius:0 2px 2px 0;
+}
+.sb-item-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center}
+.sb-badge{
+  margin-left:auto;background:var(--teal);color:var(--void);
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
+  padding:1px 6px;border-radius:2px;
+}
+.sb-badge.warn{background:var(--gold);color:var(--void)}
+.sb-footer{
+  padding:12px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.sb-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#1A3A5C,#0F2A44);
+  border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0;
+}
+.sb-user-name{font-size:12px;font-weight:600;color:var(--text);flex:1}
+.sb-user-role{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+.sb-settings{color:var(--text3);cursor:pointer;font-size:14px;transition:color .2s}
+.sb-settings:hover{color:var(--teal)}
+
+/* ── MAIN ───────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{
+  height:56px;flex-shrink:0;
+  background:var(--deep);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 28px;gap:16px;
+}
+.topbar-title{font-size:15px;font-weight:700;letter-spacing:-0.01em;flex:1}
+.topbar-search{
+  display:flex;align-items:center;gap:8px;
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:4px;padding:7px 14px;min-width:220px;
+  transition:border-color .2s;
+}
+.topbar-search:focus-within{border-color:var(--teal)}
+.topbar-search input{
+  background:none;border:none;outline:none;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--text);width:100%;
+}
+.topbar-search input::placeholder{color:var(--text3)}
+.topbar-search .icon{color:var(--text3);font-size:13px}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.topbar-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:0.06em;cursor:pointer;
+  transition:all .2s;border:none;
+}
+.topbar-btn.secondary{
+  background:var(--panel);border:1px solid var(--border2);
+  color:var(--text2);
+}
+.topbar-btn.secondary:hover{border-color:var(--teal);color:var(--teal)}
+.topbar-btn.primary{
+  background:var(--teal);color:var(--void);font-weight:600;
+}
+.topbar-btn.primary:hover{background:#00FFDD}
+.notif-btn{
+  width:36px;height:36px;border-radius:4px;
+  background:var(--panel);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;transition:border-color .2s;
+}
+.notif-btn:hover{border-color:var(--teal)}
+.notif-dot{
+  position:absolute;top:7px;right:7px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--teal);border:1.5px solid var(--deep);
+}
+
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+
+/* ── KPI CARDS ──────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:20px;
+  position:relative;overflow:hidden;
+  transition:border-color .25s;cursor:default;
+}
+.kpi:hover{border-color:var(--border2)}
+.kpi::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,var(--kpi-color,var(--teal)),transparent);
+}
+.kpi.gold{--kpi-color:var(--gold)}
+.kpi.blue{--kpi-color:var(--blue)}
+.kpi.green{--kpi-color:var(--green)}
+.kpi-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--text2);margin-bottom:12px;
+  display:flex;align-items:center;gap:6px;
+}
+.kpi-icon{font-size:13px}
+.kpi-value{
+  font-family:'Syne',sans-serif;font-size:30px;font-weight:800;
+  color:var(--text);letter-spacing:-0.02em;line-height:1;
+  margin-bottom:8px;
+}
+.kpi-value .unit{font-size:14px;color:var(--text2);font-weight:500}
+.kpi-delta{
+  display:flex;align-items:center;gap:5px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+}
+.kpi-delta.up{color:var(--green)}
+.kpi-delta.down{color:var(--red)}
+.kpi-delta.neutral{color:var(--text3)}
+.kpi-spark{
+  position:absolute;bottom:0;right:0;
+  width:80px;height:40px;opacity:0.15;
+}
+
+/* ── TWO-COL LAYOUT ─────────────────────── */
+.two-col{display:grid;grid-template-columns:1fr 360px;gap:16px;margin-bottom:24px}
+
+/* ── USAGE CHART ────────────────────────── */
+.card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;
+}
+.card-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:13px;font-weight:700;letter-spacing:-0.01em}
+.card-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2)}
+.card-actions{display:flex;gap:6px}
+.card-btn{
+  padding:5px 12px;border-radius:3px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.08em;cursor:pointer;transition:all .2s;border:none;
+}
+.card-btn.active{background:var(--teal-pale);color:var(--teal);border:1px solid rgba(0,212,180,0.2)}
+.card-btn.inactive{background:transparent;color:var(--text3);border:1px solid transparent}
+.card-btn.inactive:hover{color:var(--text2)}
+.card-body{padding:20px}
+
+/* Chart bars */
+.chart-wrap{position:relative;height:160px;display:flex;align-items:flex-end;gap:6px;padding-top:20px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.chart-bar{
+  width:100%;border-radius:2px 2px 0 0;
+  background:linear-gradient(to top,var(--bar-color,var(--teal-dim)),var(--teal));
+  min-height:4px;transition:height .5s ease;position:relative;cursor:pointer;
+}
+.chart-bar::after{
+  content:attr(data-val);
+  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2);
+  white-space:nowrap;opacity:0;transition:opacity .2s;
+}
+.chart-bar:hover::after{opacity:1}
+.chart-bar:hover{filter:brightness(1.2)}
+.chart-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);white-space:nowrap}
+.chart-grid{
+  position:absolute;inset:20px 0 0 0;
+  display:flex;flex-direction:column;justify-content:space-between;
+  pointer-events:none;
+}
+.chart-grid-line{
+  width:100%;border-top:1px dashed var(--border);
+  display:flex;align-items:center;
+}
+.chart-grid-val{
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  color:var(--text3);margin-left:4px;white-space:nowrap;
+}
+
+/* Endpoint breakdown */
+.breakdown-list{display:flex;flex-direction:column;gap:10px;padding:16px 20px}
+.breakdown-item{
+  display:flex;align-items:center;gap:10px;
+}
+.breakdown-name{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--text2);min-width:120px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.breakdown-bar-wrap{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.breakdown-bar{height:100%;border-radius:3px;transition:width .6s ease}
+.breakdown-count{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--text3);min-width:40px;text-align:right;
+}
+
+/* ── RECENT CALLS TABLE ──────────────────── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--text3);padding:10px 16px;text-align:left;
+  border-bottom:1px solid var(--border);font-weight:500;
+  white-space:nowrap;
+}
+tbody tr{
+  border-bottom:1px solid var(--border);
+  transition:background .15s;cursor:default;
+}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,0.02)}
+tbody td{
+  padding:11px 16px;font-size:12px;color:var(--text);
+  white-space:nowrap;
+}
+.td-mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.td-ref{color:var(--teal);font-family:'JetBrains Mono',monospace;font-size:10px}
+.status-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:3px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;
+}
+.pill-ok{background:var(--green-pale);color:var(--green);border:1px solid rgba(34,197,94,0.15)}
+.pill-fail{background:var(--red-pale);color:var(--red);border:1px solid rgba(240,64,64,0.15)}
+.pill-pend{background:var(--gold-pale);color:var(--gold);border:1px solid rgba(240,168,48,0.15)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.type-badge{
+  display:inline-block;padding:2px 8px;border-radius:2px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.08em;text-transform:uppercase;
+}
+.type-nin{background:rgba(0,212,180,0.1);color:var(--teal);border:1px solid rgba(0,212,180,0.15)}
+.type-bvn{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.15)}
+.type-face{background:rgba(240,168,48,0.1);color:var(--gold);border:1px solid rgba(240,168,48,0.15)}
+.type-bg{background:rgba(139,92,246,0.1);color:#A78BFA;border:1px solid rgba(139,92,246,0.15)}
+.latency-bar{
+  display:flex;align-items:center;gap:6px;
+}
+.lat-track{width:48px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.lat-fill{height:100%;border-radius:2px;background:var(--teal)}
+.lat-fill.warn{background:var(--gold)}
+.lat-fill.slow{background:var(--red)}
+
+/* ── API KEY WIDGET ─────────────────────── */
+.apikey-widget{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;
+}
+.key-row{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.key-row:last-child{border-bottom:none}
+.key-name{font-size:12px;font-weight:600;color:var(--text);flex:1}
+.key-env{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:2px 7px;border-radius:2px;letter-spacing:0.1em;text-transform:uppercase;
+}
+.key-live{background:var(--green-pale);color:var(--green);border:1px solid rgba(34,197,94,0.15)}
+.key-test{background:var(--gold-pale);color:var(--gold);border:1px solid rgba(240,168,48,0.15)}
+.key-val{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--text3);background:var(--panel2);
+  padding:4px 10px;border-radius:3px;border:1px solid var(--border);
+  cursor:pointer;transition:all .2s;
+}
+.key-val:hover{border-color:var(--teal);color:var(--teal)}
+.key-actions{display:flex;gap:6px}
+.key-icon-btn{
+  width:26px;height:26px;border-radius:3px;
+  background:var(--panel2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;cursor:pointer;transition:all .2s;
+}
+.key-icon-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+/* ── WEBHOOK STATUS ─────────────────────── */
+.webhook-list{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+.webhook-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;background:var(--panel2);
+  border:1px solid var(--border);border-radius:4px;
+}
+.webhook-method{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:2px 6px;border-radius:2px;
+  background:var(--teal-pale);color:var(--teal);
+  border:1px solid rgba(0,212,180,0.15);letter-spacing:0.1em;
+}
+.webhook-path{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);flex:1}
+.webhook-ago{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+.webhook-status-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+}
+.wsd-ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.wsd-fail{background:var(--red);box-shadow:0 0 6px var(--red)}
+
+/* ── USAGE METER ────────────────────────── */
+.usage-meter{padding:16px 20px}
+.usage-row{margin-bottom:16px}
+.usage-hd{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:6px;
+}
+.usage-name{font-size:12px;font-weight:500;color:var(--text)}
+.usage-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2)}
+.usage-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.usage-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.uf-teal{background:linear-gradient(to right,var(--teal-dim),var(--teal))}
+.uf-gold{background:linear-gradient(to right,#C88020,var(--gold))}
+.uf-blue{background:linear-gradient(to right,#1D4ED8,var(--blue))}
+.usage-plan{
+  margin-top:16px;padding-top:16px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.plan-name{font-size:12px;font-weight:600;color:var(--text)}
+.plan-badge{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:3px 8px;border-radius:2px;letter-spacing:0.1em;text-transform:uppercase;
+  background:var(--teal-pale);color:var(--teal);border:1px solid rgba(0,212,180,0.2);
+}
+.upgrade-btn{
+  display:block;width:100%;margin-top:12px;
+  padding:9px;text-align:center;
+  background:transparent;border:1px solid var(--border2);
+  color:var(--text2);border-radius:3px;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;transition:all .2s;
+}
+.upgrade-btn:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-pale)}
+
+/* ── SCROLLBAR ───────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ── TAB SWITCHER (top nav tabs) ─────────── */
+.tab-nav{
+  display:flex;gap:2px;background:var(--panel);
+  padding:4px;border-radius:5px;border:1px solid var(--border);
+}
+.tab-btn{
+  padding:5px 14px;border-radius:3px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:0.08em;cursor:pointer;
+  transition:all .2s;border:none;
+}
+.tab-btn.active{background:var(--panel3);color:var(--teal);border:1px solid var(--border2)}
+.tab-btn.inactive{background:transparent;color:var(--text3)}
+.tab-btn.inactive:hover{color:var(--text2)}
+
+/* ── SECTION HEADING ─────────────────────── */
+.section-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.section-heading{font-size:13px;font-weight:700;letter-spacing:-0.01em}
+.section-link{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--teal);cursor:pointer;letter-spacing:0.06em;
+}
+
+/* ── ALERT BANNER ────────────────────────── */
+.alert-bar{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;background:rgba(240,168,48,0.08);
+  border:1px solid rgba(240,168,48,0.2);border-radius:5px;
+  margin-bottom:16px;font-size:12px;color:var(--gold);
+}
+.alert-icon{font-size:14px;flex-shrink:0}
+.alert-msg{flex:1;font-family:'JetBrains Mono',monospace;font-size:11px}
+.alert-close{cursor:pointer;opacity:0.6;font-size:14px}
+.alert-close:hover{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-mark">V</div>
+    <span class="sb-logo-text">Veridi<span class="dot">.</span></span>
+  </div>
+
+  <div class="sb-org">
+    <div class="sb-org-avatar">TN</div>
+    <div style="flex:1;overflow:hidden">
+      <div class="sb-org-name">Tendr.ng</div>
+      <div class="sb-org-plan">Growth Plan</div>
+    </div>
+    <div class="sb-chevron">⌄</div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-section">Overview</div>
+    <div class="sb-item active"><span class="sb-item-icon">⬡</span> Dashboard</div>
+    <div class="sb-item"><span class="sb-item-icon">📊</span> Analytics</div>
+    <div class="sb-item"><span class="sb-item-icon">⚡</span> Live Calls <span class="sb-badge">3</span></div>
+
+    <div class="sb-section">Verification</div>
+    <div class="sb-item"><span class="sb-item-icon">🪪</span> Veridi ID</div>
+    <div class="sb-item"><span class="sb-item-icon">👤</span> Veridi Face</div>
+    <div class="sb-item"><span class="sb-item-icon">📋</span> Background Checks <span class="sb-badge warn">2</span></div>
+    <div class="sb-item"><span class="sb-item-icon">📍</span> Address</div>
+    <div class="sb-item"><span class="sb-item-icon">⭐</span> Veridi Score</div>
+
+    <div class="sb-section">Configuration</div>
+    <div class="sb-item"><span class="sb-item-icon">🔑</span> API Keys</div>
+    <div class="sb-item"><span class="sb-item-icon">🔔</span> Webhooks</div>
+    <div class="sb-item"><span class="sb-item-icon">👥</span> Team</div>
+    <div class="sb-item"><span class="sb-item-icon">💳</span> Billing</div>
+    <div class="sb-item"><span class="sb-item-icon">📜</span> Audit Log</div>
+    <div class="sb-item"><span class="sb-item-icon">📖</span> API Docs ↗</div>
+  </nav>
+
+  <div class="sb-footer">
+    <div class="sb-avatar">SA</div>
+    <div style="flex:1;overflow:hidden">
+      <div class="sb-user-name">Samuel A.</div>
+      <div class="sb-user-role">Owner</div>
+    </div>
+    <div class="sb-settings">⚙</div>
+  </div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-title">Dashboard</div>
+    <div class="topbar-search">
+      <span class="icon">⌕</span>
+      <input type="text" placeholder="Search verifications, references...">
+    </div>
+    <div class="topbar-actions">
+      <div class="tab-nav">
+        <button class="tab-btn active">Today</button>
+        <button class="tab-btn inactive">7d</button>
+        <button class="tab-btn inactive">30d</button>
+      </div>
+      <div class="notif-btn">
+        🔔
+        <div class="notif-dot"></div>
+      </div>
+      <button class="topbar-btn primary">+ New Check</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Alert -->
+    <div class="alert-bar">
+      <span class="alert-icon">⚠</span>
+      <span class="alert-msg">2 background checks require manual review — caregiver employment records flagged for inconsistency</span>
+      <span class="alert-close">✕</span>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label"><span class="kpi-icon">⚡</span> Total Verifications</div>
+        <div class="kpi-value">2,847<span class="unit"> calls</span></div>
+        <div class="kpi-delta up">↑ 18.4% vs yesterday</div>
+        <svg class="kpi-spark" viewBox="0 0 80 40"><polyline points="0,35 10,28 20,30 30,18 40,22 50,10 60,14 70,6 80,8" fill="none" stroke="#00D4B4" stroke-width="1.5"/></svg>
+      </div>
+      <div class="kpi gold">
+        <div class="kpi-label"><span class="kpi-icon">✓</span> Verified</div>
+        <div class="kpi-value">2,611<span class="unit"> /2847</span></div>
+        <div class="kpi-delta up">↑ 91.7% success rate</div>
+        <svg class="kpi-spark" viewBox="0 0 80 40"><polyline points="0,32 10,26 20,28 30,16 40,20 50,8 60,12 70,4 80,6" fill="none" stroke="#F0A830" stroke-width="1.5"/></svg>
+      </div>
+      <div class="kpi blue">
+        <div class="kpi-label"><span class="kpi-icon">⏱</span> Avg Latency</div>
+        <div class="kpi-value">612<span class="unit"> ms</span></div>
+        <div class="kpi-delta down">↓ 34ms vs yesterday</div>
+        <svg class="kpi-spark" viewBox="0 0 80 40"><polyline points="0,20 10,24 20,18 30,22 40,14 50,18 60,12 70,16 80,10" fill="none" stroke="#3B82F6" stroke-width="1.5"/></svg>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label"><span class="kpi-icon">💰</span> Monthly Spend</div>
+        <div class="kpi-value">₦142k<span class="unit"> /200k</span></div>
+        <div class="kpi-delta neutral">71% of plan limit</div>
+        <svg class="kpi-spark" viewBox="0 0 80 40"><polyline points="0,38 10,34 20,30 30,28 40,24 50,20 60,16 70,13 80,10" fill="none" stroke="#22C55E" stroke-width="1.5"/></svg>
+      </div>
+    </div>
+
+    <!-- Chart + Breakdown -->
+    <div class="two-col" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">API Call Volume</div>
+            <div class="card-sub">Verifications per hour — today</div>
+          </div>
+          <div class="card-actions">
+            <button class="card-btn active">Hourly</button>
+            <button class="card-btn inactive">Daily</button>
+            <button class="card-btn inactive">Weekly</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap" id="mainChart">
+            <div class="chart-grid">
+              <div class="chart-grid-line"><span class="chart-grid-val">300</span></div>
+              <div class="chart-grid-line"><span class="chart-grid-val">200</span></div>
+              <div class="chart-grid-line"><span class="chart-grid-val">100</span></div>
+              <div class="chart-grid-line"><span class="chart-grid-val">0</span></div>
+            </div>
+            <!-- bars injected by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Endpoint Breakdown</div>
+            <div class="card-sub">Today's call distribution</div>
+          </div>
+        </div>
+        <div class="breakdown-list">
+          <div class="breakdown-item">
+            <div class="breakdown-name">/verify/nin</div>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:78%;background:var(--teal)"></div></div>
+            <div class="breakdown-count">1,847</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-name">/verify/bvn</div>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:34%;background:#3B82F6"></div></div>
+            <div class="breakdown-count">412</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-name">/face/liveness</div>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:22%;background:var(--gold)"></div></div>
+            <div class="breakdown-count">308</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-name">/face/match</div>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:14%;background:#8B5CF6"></div></div>
+            <div class="breakdown-count">196</div>
+          </div>
+          <div class="breakdown-item">
+            <div class="breakdown-name">/background/request</div>
+            <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:7%;background:#EC4899"></div></div>
+            <div class="breakdown-count">84</div>
+          </div>
+        </div>
+        <div class="usage-meter" style="padding-top:0">
+          <div class="usage-plan">
+            <div>
+              <div class="plan-name">Growth Plan</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px">2,847 of 3,000 calls used</div>
+            </div>
+            <div class="plan-badge">Growth</div>
+          </div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:10px">
+            <div style="width:94.9%;height:100%;border-radius:3px;background:linear-gradient(to right,var(--teal-dim),var(--teal))"></div>
+          </div>
+          <button class="upgrade-btn">↑ Upgrade to Scale Plan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Calls + Side Widgets -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Recent Verification Calls</div>
+            <div class="card-sub">Last 50 API calls across all endpoints</div>
+          </div>
+          <button class="card-btn inactive" style="border:1px solid var(--border2)">Export CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Confidence</th>
+                <th>Latency</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="callsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- API Keys -->
+        <div class="apikey-widget">
+          <div class="card-header">
+            <div class="card-title">API Keys</div>
+            <button class="card-btn inactive" style="border:1px solid var(--border2)">+ New Key</button>
+          </div>
+          <div class="key-row">
+            <div style="flex:1">
+              <div class="key-name">Production Key</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px">Last used 3 mins ago</div>
+            </div>
+            <span class="key-env key-live">Live</span>
+            <div class="key-val">vrd_live_sk_••••••••3kZ9</div>
+            <div class="key-actions">
+              <div class="key-icon-btn" title="Copy">⎘</div>
+              <div class="key-icon-btn" title="Rotate">↻</div>
+            </div>
+          </div>
+          <div class="key-row">
+            <div style="flex:1">
+              <div class="key-name">Sandbox Key</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px">Used for testing</div>
+            </div>
+            <span class="key-env key-test">Test</span>
+            <div class="key-val">vrd_test_sk_••••••••8mR2</div>
+            <div class="key-actions">
+              <div class="key-icon-btn">⎘</div>
+              <div class="key-icon-btn">↻</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Webhooks -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Webhooks</div>
+            <div class="card-sub">Recent deliveries</div>
+          </div>
+          <div class="webhook-list">
+            <div class="webhook-item">
+              <div class="webhook-status-dot wsd-ok"></div>
+              <span class="webhook-method">POST</span>
+              <span class="webhook-path">tendr.ng/api/webhook/veridi</span>
+              <span class="webhook-ago">12s ago</span>
+            </div>
+            <div class="webhook-item">
+              <div class="webhook-status-dot wsd-ok"></div>
+              <span class="webhook-method">POST</span>
+              <span class="webhook-path">tendr.ng/api/webhook/veridi</span>
+              <span class="webhook-ago">1m ago</span>
+            </div>
+            <div class="webhook-item">
+              <div class="webhook-status-dot wsd-fail"></div>
+              <span class="webhook-method">POST</span>
+              <span class="webhook-path">tendr.ng/api/webhook/veridi</span>
+              <span class="webhook-ago">4m ago · Retry 2/5</span>
+            </div>
+            <div class="webhook-item">
+              <div class="webhook-status-dot wsd-ok"></div>
+              <span class="webhook-method">POST</span>
+              <span class="webhook-path">tendr.ng/api/webhook/veridi</span>
+              <span class="webhook-ago">8m ago</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// Chart bars
+const hours = ['00','02','04','06','08','10','12','14','16','18','20','22'];
+const vals  = [18,12,22,45,120,210,280,260,195,245,310,280];
+const maxV  = Math.max(...vals);
+const chart = document.getElementById('mainChart');
+hours.forEach((h,i) => {
+  const w = chart.querySelector('.chart-wrap') || chart;
+  const wrap = document.createElement('div');
+  wrap.className = 'chart-bar-wrap';
+  const pct = (vals[i]/maxV*100).toFixed(0);
+  wrap.innerHTML = `
+    <div class="chart-bar" style="height:${pct}%" data-val="${vals[i]}"></div>
+    <div class="chart-label">${h}h</div>
+  `;
+  chart.appendChild(wrap);
+});
+
+// Calls table
+const types = [
+  {type:'NIN',cls:'type-nin'},{type:'BVN',cls:'type-bvn'},
+  {type:'FACE',cls:'type-face'},{type:'BG',cls:'type-bg'}
+];
+const statuses = [
+  {s:'Verified',c:'pill-ok'},{s:'Verified',c:'pill-ok'},
+  {s:'Verified',c:'pill-ok'},{s:'Failed',c:'pill-fail'},
+  {s:'Pending',c:'pill-pend'}
+];
+const refs = ['vrd_nin_3xK9m','vrd_bvn_8mR2p','vrd_fc_7nQ1k','vrd_nin_2pL4w','vrd_bg_5tS8r','vrd_nin_9kM2x','vrd_bvn_4jN6v','vrd_fc_1qA3z'];
+const lats  = [612,420,895,310,1240,580,445,730];
+const tbody = document.getElementById('callsTable');
+for(let i=0;i<8;i++){
+  const t = types[i%types.length];
+  const st = statuses[i%statuses.length];
+  const lat = lats[i%lats.length];
+  const latPct = Math.min(lat/1500*100,100);
+  const latCls = lat<600?'':'lat-fill '+(lat<900?'warn':'slow');
+  const mins = i === 0 ? 'just now' : `${i*3}m ago`;
+  const conf = st.s==='Verified'?(88+Math.floor(Math.random()*10))+'%':'—';
+  tbody.innerHTML += `<tr>
+    <td class="td-ref">${refs[i]}</td>
+    <td><span class="type-badge ${t.cls}">${t.type}</span></td>
+    <td><span class="status-pill ${st.c}"><span class="pill-dot"></span>${st.s}</span></td>
+    <td class="td-mono">${conf}</td>
+    <td>
+      <div class="latency-bar">
+        <div class="lat-track"><div class="${latCls||'lat-fill'}" style="width:${latPct}%"></div></div>
+        <span class="td-mono" style="font-size:10px;color:var(--text2)">${lat}ms</span>
+      </div>
+    </td>
+    <td class="td-mono" style="color:var(--text3)">${mins}</td>
+  </tr>`;
+}
+
+// Tab switcher
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    btn.closest('.tab-nav').querySelectorAll('.tab-btn').forEach(b=>{
+      b.className = b===btn?'tab-btn active':'tab-btn inactive';
+    });
+  });
+});
+
+// Alert close
+document.querySelector('.alert-close').addEventListener('click',e=>{
+  e.target.closest('.alert-bar').style.display='none';
+});
+
+// Sidebar active
+document.querySelectorAll('.sb-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

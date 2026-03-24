@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veridi — Secure Scalable Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#080C12;
+  --panel:#0D1421;
+  --panel2:#111827;
+  --border:#1E2D45;
+  --border2:#253650;
+  --teal:#00BFA6;
+  --teal2:#007A6B;
+  --teal-glow:rgba(0,191,166,0.15);
+  --blue:#1B6FEA;
+  --blue-glow:rgba(27,111,234,0.15);
+  --gold:#E8A020;
+  --gold-glow:rgba(232,160,32,0.15);
+  --red:#E84040;
+  --red-glow:rgba(232,64,64,0.12);
+  --purple:#8B5CF6;
+  --purple-glow:rgba(139,92,246,0.12);
+  --green:#22C55E;
+  --text:#E2E8F0;
+  --text2:#94A3B8;
+  --text3:#475569;
+  --railway:#7C3AED;
+  --cf:#F6821F;
+}
+
+html{scroll-behavior:smooth}
+body{
+  background:var(--void);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── HEADER ──────────────────────────────── */
+.page-header{
+  padding:40px 60px 32px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+}
+.page-header::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(0,191,166,0.04) 0%,transparent 60%);
+  pointer-events:none;
+}
+.logo-block{display:flex;align-items:baseline;gap:12px}
+.logo-text{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--teal);letter-spacing:-0.02em}
+.logo-sub{font-size:11px;color:var(--text3);letter-spacing:0.2em;text-transform:uppercase}
+.header-meta{display:flex;gap:32px;align-items:center}
+.meta-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px;border:1px solid var(--border2);
+  border-radius:2px;font-size:11px;color:var(--text2);
+  letter-spacing:0.08em;text-transform:uppercase;
+}
+.meta-chip .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-teal{background:var(--teal);box-shadow:0 0 6px var(--teal)}
+.dot-orange{background:var(--cf);box-shadow:0 0 6px var(--cf)}
+.dot-purple{background:var(--railway);box-shadow:0 0 6px var(--railway)}
+
+/* ── LAYER LABELS ────────────────────────── */
+.arch-container{padding:40px 60px 60px;position:relative}
+
+.layer{margin-bottom:4px;position:relative}
+.layer-label{
+  font-size:10px;letter-spacing:0.25em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:12px;
+}
+.layer-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.layer-label span{
+  padding:3px 10px;border-radius:2px;
+  font-size:9px;font-weight:600;letter-spacing:0.15em;
+}
+.lbl-cf{background:rgba(246,130,31,0.1);color:var(--cf);border:1px solid rgba(246,130,31,0.2)}
+.lbl-railway{background:rgba(124,58,237,0.1);color:var(--railway);border:1px solid rgba(124,58,237,0.2)}
+.lbl-ext{background:rgba(34,197,94,0.08);color:var(--green);border:1px solid rgba(34,197,94,0.15)}
+.lbl-client{background:rgba(27,111,234,0.1);color:var(--blue);border:1px solid rgba(27,111,234,0.2)}
+
+/* ── NODE GRID ───────────────────────────── */
+.node-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+
+.node{
+  border:1px solid var(--border2);
+  border-radius:4px;
+  padding:16px 20px;
+  background:var(--panel);
+  position:relative;
+  cursor:pointer;
+  transition:all 0.25s ease;
+  flex:1;
+  min-width:180px;
+  overflow:hidden;
+}
+.node::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--node-accent,var(--teal));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 0.3s ease;
+}
+.node:hover{
+  border-color:var(--node-accent,var(--teal));
+  background:var(--panel2);
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px var(--node-accent,var(--teal));
+}
+.node:hover::before{transform:scaleX(1)}
+
+.node.teal{--node-accent:var(--teal)}
+.node.blue{--node-accent:var(--blue)}
+.node.gold{--node-accent:var(--gold)}
+.node.purple{--node-accent:var(--purple)}
+.node.red{--node-accent:var(--red)}
+.node.green{--node-accent:var(--green)}
+.node.orange{--node-accent:var(--cf)}
+
+.node-icon{font-size:22px;margin-bottom:10px;display:block}
+.node-name{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+  color:var(--text);margin-bottom:4px;letter-spacing:-0.01em;
+}
+.node-tag{
+  font-size:9px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--node-accent,var(--teal));margin-bottom:8px;display:block;
+}
+.node-desc{font-size:10.5px;color:var(--text2);line-height:1.6;font-weight:300}
+.node-badge{
+  position:absolute;top:10px;right:10px;
+  font-size:9px;padding:2px 7px;border-radius:2px;
+  letter-spacing:0.1em;text-transform:uppercase;font-weight:600;
+}
+.badge-cf{background:rgba(246,130,31,0.15);color:var(--cf)}
+.badge-railway{background:rgba(124,58,237,0.15);color:var(--railway)}
+.badge-ext{background:rgba(34,197,94,0.1);color:var(--green)}
+.node-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:10px;padding:3px 8px;border-radius:2px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  font-size:9px;color:var(--text3);letter-spacing:0.08em;
+}
+
+/* ── FLOW ARROWS ─────────────────────────── */
+.flow-section{
+  margin:8px 0 32px;
+  position:relative;
+}
+.flow-arrows{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;padding:0 20px;
+}
+.arrow-track{
+  flex:1;height:1px;background:var(--border);position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+.arrow-track::after{
+  content:'';
+  position:absolute;top:-4px;right:0;
+  width:8px;height:8px;
+  border-top:1px solid var(--teal);
+  border-right:1px solid var(--teal);
+  transform:rotate(45deg);
+}
+.arrow-animated{
+  position:absolute;width:40px;height:1px;
+  background:linear-gradient(to right, transparent, var(--teal), transparent);
+  animation:flowRight 2s linear infinite;
+  top:0;
+}
+@keyframes flowRight{
+  from{left:-40px}to{left:100%}
+}
+.flow-label{
+  padding:4px 16px;background:var(--panel);border:1px solid var(--border2);
+  border-radius:2px;font-size:9px;color:var(--text2);letter-spacing:0.12em;
+  text-transform:uppercase;white-space:nowrap;margin:0 12px;
+}
+
+/* ── VERTICAL CONNECTOR ─────────────────── */
+.v-connector{
+  display:flex;align-items:center;justify-content:center;
+  padding:4px 0 16px;gap:16px;
+}
+.v-line{
+  width:1px;height:32px;
+  background:linear-gradient(to bottom, var(--border), var(--teal), var(--border));
+  position:relative;
+}
+.v-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--teal);box-shadow:0 0 8px var(--teal);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.5;transform:scale(0.7)}
+}
+.v-label{font-size:9px;color:var(--teal);letter-spacing:0.15em;text-transform:uppercase}
+
+/* ── DATA FLOW PANEL ────────────────────── */
+.flow-panel{
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:4px;padding:24px 28px;margin-bottom:32px;
+}
+.flow-panel-title{
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:700;
+  color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:20px;display:flex;align-items:center;gap:10px;
+}
+.flow-panel-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.flow-steps{display:flex;gap:0;align-items:stretch}
+.flow-step{
+  flex:1;padding:16px 18px;
+  border-right:1px solid var(--border);
+  position:relative;
+}
+.flow-step:last-child{border-right:none}
+.flow-step-num{
+  font-family:'Syne',sans-serif;font-size:28px;font-weight:800;
+  color:var(--border2);margin-bottom:8px;line-height:1;
+}
+.flow-step-title{font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:0.04em}
+.flow-step-desc{font-size:10px;color:var(--text2);line-height:1.6;font-weight:300}
+.flow-step-tag{
+  display:inline-block;margin-top:8px;
+  font-size:9px;padding:2px 7px;border-radius:2px;
+  letter-spacing:0.1em;text-transform:uppercase;
+}
+.tag-cf{background:rgba(246,130,31,0.12);color:var(--cf)}
+.tag-railway{background:rgba(124,58,237,0.12);color:var(--railway)}
+.tag-db{background:rgba(0,191,166,0.1);color:var(--teal)}
+
+/* ── SECURITY MATRIX ───────────────────── */
+.matrix-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+  margin-bottom:32px;
+}
+.matrix-cell{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;padding:18px 20px;
+  border-left:3px solid var(--node-accent,var(--teal));
+}
+.matrix-cell.teal{--node-accent:var(--teal)}
+.matrix-cell.blue{--node-accent:var(--blue)}
+.matrix-cell.gold{--node-accent:var(--gold)}
+.matrix-cell.purple{--node-accent:var(--purple)}
+.matrix-cell.red{--node-accent:var(--red)}
+.matrix-cell.orange{--node-accent:var(--cf)}
+.matrix-cell-title{
+  font-size:11px;font-weight:600;color:var(--text);
+  margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.matrix-cell-title .icon{font-size:14px}
+.matrix-item{
+  font-size:10px;color:var(--text2);line-height:1.7;
+  display:flex;align-items:flex-start;gap:6px;
+}
+.matrix-item::before{
+  content:'›';color:var(--node-accent,var(--teal));
+  font-size:12px;flex-shrink:0;margin-top:-1px;
+}
+
+/* ── ENV TABLE ──────────────────────────── */
+.env-table{
+  width:100%;border-collapse:collapse;margin-bottom:32px;
+  font-size:11px;
+}
+.env-table th{
+  background:var(--panel2);color:var(--text2);
+  padding:10px 16px;text-align:left;
+  font-size:9px;letter-spacing:0.15em;text-transform:uppercase;
+  border-bottom:1px solid var(--border2);font-weight:500;
+}
+.env-table td{
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  color:var(--text);vertical-align:top;
+}
+.env-table tr:hover td{background:rgba(255,255,255,0.02)}
+.env-pill{
+  display:inline-block;padding:2px 8px;border-radius:2px;
+  font-size:9px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;
+}
+.pill-cf{background:rgba(246,130,31,0.12);color:var(--cf)}
+.pill-railway{background:rgba(124,58,237,0.12);color:var(--railway)}
+.pill-both{background:rgba(0,191,166,0.1);color:var(--teal)}
+
+/* ── SECTION HEADERS ─────────────────────── */
+.section-hd{
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:0.2em;text-transform:uppercase;color:var(--teal);
+  margin-bottom:16px;display:flex;align-items:center;gap:12px;
+}
+.section-hd::before{content:'';width:20px;height:1px;background:var(--teal)}
+.section-hd::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── SCROLLABLE CANVAS HINT ─────────────── */
+.scroll-hint{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:4px;padding:8px 14px;
+  font-size:10px;color:var(--text2);letter-spacing:0.06em;
+  opacity:0.7;pointer-events:none;
+}
+
+/* ── ANIMATED DATA PACKETS ──────────────── */
+.packet-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.packet{
+  position:absolute;
+  width:4px;height:4px;border-radius:50%;
+  background:var(--teal);
+  box-shadow:0 0 6px var(--teal);
+  animation:packetFlow var(--dur,3s) linear infinite;
+  animation-delay:var(--delay,0s);
+  opacity:0;
+}
+@keyframes packetFlow{
+  0%{opacity:0;transform:translateX(0)}
+  5%{opacity:1}
+  95%{opacity:1}
+  100%{opacity:0;transform:translateX(var(--travel,200px))}
+}
+
+/* ── TOOLTIP ─────────────────────────────── */
+.tooltip{
+  position:fixed;background:var(--panel2);border:1px solid var(--border2);
+  border-radius:4px;padding:10px 14px;font-size:10px;color:var(--text);
+  pointer-events:none;z-index:1000;max-width:260px;line-height:1.6;
+  opacity:0;transition:opacity 0.2s;box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.tooltip.visible{opacity:1}
+.tooltip-title{font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--teal);margin-bottom:6px}
+
+/* ── RESPONSIVE ─────────────────────────── */
+@media(max-width:900px){
+  .page-header{padding:24px;flex-direction:column;gap:16px;align-items:flex-start}
+  .arch-container{padding:24px}
+  .node-row{gap:8px}
+  .node{min-width:140px}
+  .matrix-grid{grid-template-columns:1fr}
+  .flow-steps{flex-direction:column}
+  .flow-step{border-right:none;border-bottom:1px solid var(--border)}
+  .flow-step:last-child{border-bottom:none}
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="logo-block">
+    <div class="logo-text">VERIDI</div>
+    <div class="logo-sub">Secure Scalable Architecture · v1.0</div>
+  </div>
+  <div class="header-meta">
+    <div class="meta-chip"><div class="dot dot-orange"></div>Cloudflare Edge</div>
+    <div class="meta-chip"><div class="dot dot-purple"></div>Railway Compute</div>
+    <div class="meta-chip"><div class="dot dot-teal"></div>Next.js + NestJS</div>
+  </div>
+</div>
+
+<div class="arch-container">
+
+  <!-- ── LAYER 0: CLIENT ─────────────────── -->
+  <div class="layer">
+    <div class="layer-label">Layer 0 — Clients &amp; Consumers <span class="lbl-client">External</span></div>
+    <div class="node-row">
+      <div class="node blue" data-tip="Developers integrating Veridi APIs into their platforms. Access via REST API using API keys. Full sandbox environment available at veridi.io/playground.">
+        <span class="node-icon">💻</span>
+        <div class="node-name">Developer / API Client</div>
+        <span class="node-tag">REST API + SDK</span>
+        <div class="node-desc">Next.js apps, NestJS backends, Laravel, Django — any platform integrating Veridi via HTTP</div>
+        <div class="node-pill">Node SDK</div>
+        <div class="node-pill">Python SDK</div>
+      </div>
+      <div class="node blue" data-tip="Tendr.ng is Veridi's reference customer — a caregiver hiring marketplace that uses Veridi ID for NIN verification and Veridi Face for liveness checks on caregiver onboarding.">
+        <span class="node-icon">🌿</span>
+        <div class="node-name">Tendr.ng</div>
+        <span class="node-tag">Reference Customer</span>
+        <div class="node-desc">Caregiver marketplace — live proof of concept. First production Veridi integration</div>
+        <div class="node-pill">Veridi ID</div>
+        <div class="node-pill">Veridi Face</div>
+      </div>
+      <div class="node blue" data-tip="Enterprise clients accessing Veridi through the no-code dashboard. HR teams, compliance officers, and operations managers who run background checks without writing code.">
+        <span class="node-icon">🏢</span>
+        <div class="node-name">Enterprise Dashboard</div>
+        <span class="node-tag">No-Code Portal</span>
+        <div class="node-desc">dashboard.veridi.africa — API key management, usage analytics, billing, compliance exports</div>
+        <div class="node-pill">Next.js 14</div>
+        <div class="node-pill">Railway</div>
+      </div>
+      <div class="node blue" data-tip="Workers and individuals who have a Veridi identity. They can view their own Veridi Score, share it with platforms, and request erasure of their data under NDPA 2023 rights.">
+        <span class="node-icon">🙋</span>
+        <div class="node-name">Subject (Worker)</div>
+        <span class="node-tag">Identity Holder</span>
+        <div class="node-desc">The person being verified. Owns their Veridi Score. Can share, view, and delete their data</div>
+        <div class="node-pill">Consent Widget</div>
+        <div class="node-pill">Score Portal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="v-connector">
+    <div class="v-line"></div>
+    <div class="v-dot"></div>
+    <div class="v-label">All traffic via HTTPS · TLS 1.3</div>
+    <div class="v-dot"></div>
+    <div class="v-line"></div>
+  </div>
+
+  <!-- ── LAYER 1: CLOUDFLARE EDGE ────────── -->
+  <div class="layer">
+    <div class="layer-label">Layer 1 — Cloudflare Edge <span class="lbl-cf">Cloudflare</span></div>
+    <div class="node-row">
+      <div class="node orange" data-tip="Cloudflare DNS manages all Veridi domains. veridi.africa routes to API. veridi.io routes to developer portal. api.veridi.africa routes to Cloudflare Workers edge gateway. All with Cloudflare proxy enabled for DDoS protection.">
+        <span class="node-badge badge-cf">CF DNS</span>
+        <span class="node-icon">🌐</span>
+        <div class="node-name">DNS + Proxy</div>
+        <span class="node-tag">veridi.africa · veridi.io</span>
+        <div class="node-desc">All domains proxied through Cloudflare. Zero direct Railway IP exposure</div>
+        <div class="node-pill">Proxied</div>
+        <div class="node-pill">Orange Cloud</div>
+      </div>
+      <div class="node orange" data-tip="Cloudflare WAF applies OWASP Core Ruleset plus custom Veridi rules. Blocks SQL injection, XSS, path traversal, and API-specific abuse patterns. Custom rules block repeated failed auth attempts and unusual verification patterns.">
+        <span class="node-badge badge-cf">WAF</span>
+        <span class="node-icon">🛡️</span>
+        <div class="node-name">WAF + DDoS</div>
+        <span class="node-tag">OWASP + Custom Rules</span>
+        <div class="node-desc">L3/L4/L7 DDoS mitigation. OWASP ruleset. Custom rules for verification abuse patterns</div>
+        <div class="node-pill">Always-On</div>
+        <div class="node-pill">Auto-Mitigate</div>
+      </div>
+      <div class="node orange" data-tip="Cloudflare Workers run at the edge — closest to the client. They validate API keys (lookup from KV store), check IP allowlists, apply rate limiting, and route requests to the correct Railway service. This happens before any request reaches Railway compute.">
+        <span class="node-badge badge-cf">Workers</span>
+        <span class="node-icon">⚡</span>
+        <div class="node-name">Edge Workers</div>
+        <span class="node-tag">API Gateway · Auth · Routing</span>
+        <div class="node-desc">API key validation from KV store. IP allowlist check. Rate limit enforcement. Request routing to Railway</div>
+        <div class="node-pill">KV Store</div>
+        <div class="node-pill">&lt;1ms auth</div>
+      </div>
+      <div class="node orange" data-tip="Cloudflare R2 stores all uploaded documents (ID photos, utility bills) and generated PDF reports. Zero egress fees unlike S3. Objects encrypted at rest. Signed URLs with 15-minute expiry for access. GDPR/NDPA compliant with EU storage.">
+        <span class="node-badge badge-cf">R2</span>
+        <span class="node-icon">🗄️</span>
+        <div class="node-name">R2 Object Storage</div>
+        <span class="node-tag">Documents · Reports · Biometrics</span>
+        <div class="node-desc">ID document uploads, background check reports, biometric images. Zero egress. Signed URL access only</div>
+        <div class="node-pill">AES-256</div>
+        <div class="node-pill">Zero Egress</div>
+      </div>
+      <div class="node orange" data-tip="Cloudflare Zero Trust Tunnel exposes the Veridi admin dashboard only through Cloudflare WARP. Admin staff must authenticate via Zero Trust before accessing any admin route. The admin service has no public internet exposure whatsoever.">
+        <span class="node-badge badge-cf">ZT</span>
+        <span class="node-icon">🔐</span>
+        <div class="node-name">Zero Trust Tunnel</div>
+        <span class="node-tag">Admin Access Only</span>
+        <div class="node-desc">Admin dashboard never exposed publicly. Staff access via Cloudflare WARP + SSO only. Air-gapped from public internet</div>
+        <div class="node-pill">WARP Required</div>
+        <div class="node-pill">MFA Enforced</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REQUEST FLOW PANEL -->
+  <div class="flow-panel">
+    <div class="flow-panel-title">API Request Lifecycle — Verification Call</div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-step-num">01</div>
+        <div class="flow-step-title">Client Request</div>
+        <div class="flow-step-desc">POST api.veridi.africa/v1/verify/nin with API key header, consent token, and NIN</div>
+        <span class="flow-step-tag tag-cf">Cloudflare DNS</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">02</div>
+        <div class="flow-step-title">WAF Inspection</div>
+        <div class="flow-step-desc">OWASP rules + rate limit check. Malformed requests blocked at edge before Railway</div>
+        <span class="flow-step-tag tag-cf">CF WAF</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">03</div>
+        <div class="flow-step-title">Edge Auth</div>
+        <div class="flow-step-desc">Worker validates API key hash from KV store. IP allowlist check. &lt;1ms. Reject if invalid</div>
+        <span class="flow-step-tag tag-cf">CF Worker</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">04</div>
+        <div class="flow-step-title">API Processing</div>
+        <div class="flow-step-desc">NestJS validates consent token. Checks Redis cache. If miss, queues NIMC job via BullMQ</div>
+        <span class="flow-step-tag tag-railway">Railway API</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">05</div>
+        <div class="flow-step-title">Data Source</div>
+        <div class="flow-step-desc">Worker service calls NIMC/NIBSS API. Result hashed + tokenised. Never raw PII stored</div>
+        <span class="flow-step-tag tag-railway">Railway Worker</span>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">06</div>
+        <div class="flow-step-title">Response + Webhook</div>
+        <div class="flow-step-desc">Result cached in Redis (24h TTL). API returns reference_id. Webhook fires to client endpoint</div>
+        <span class="flow-step-tag tag-db">PostgreSQL + Redis</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="v-connector">
+    <div class="v-line"></div>
+    <div class="v-dot" style="background:var(--railway);box-shadow:0 0 8px var(--railway)"></div>
+    <div class="v-label" style="color:var(--railway)">Authenticated requests forwarded to Railway</div>
+    <div class="v-dot" style="background:var(--railway);box-shadow:0 0 8px var(--railway)"></div>
+    <div class="v-line"></div>
+  </div>
+
+  <!-- ── LAYER 2: RAILWAY COMPUTE ────────── -->
+  <div class="layer">
+    <div class="layer-label">Layer 2 — Railway Compute <span class="lbl-railway">Railway</span></div>
+    <div class="node-row">
+      <div class="node purple" data-tip="The core Veridi API built in NestJS 10 with TypeScript. Handles all verification orchestration, consent validation, result formatting, and webhook delivery. Stateless — horizontally scalable via Railway replicas. Auto-scales on CPU/memory pressure.">
+        <span class="node-badge badge-railway">veridi-api</span>
+        <span class="node-icon">⚙️</span>
+        <div class="node-name">Core API</div>
+        <span class="node-tag">NestJS 10 · TypeScript</span>
+        <div class="node-desc">All verification endpoints, consent validation, result orchestration. Stateless. Auto-scales via Railway replicas</div>
+        <div class="node-pill">Port 3000</div>
+        <div class="node-pill">Docker</div>
+      </div>
+      <div class="node purple" data-tip="Next.js 14 developer portal hosted at veridi.io. Contains API documentation (auto-generated from OpenAPI spec), interactive playground, SDK download, integration guides, and status page.">
+        <span class="node-badge badge-railway">veridi-web</span>
+        <span class="node-icon">📖</span>
+        <div class="node-name">Developer Portal</div>
+        <span class="node-tag">Next.js 14 · veridi.io</span>
+        <div class="node-desc">API docs, interactive playground, SDK downloads, integration guides, API status page</div>
+        <div class="node-pill">App Router</div>
+        <div class="node-pill">Cloudflare Pages</div>
+      </div>
+      <div class="node purple" data-tip="BullMQ-powered async job processor. Handles slow verification sources (NIMC can take 2–10s), webhook delivery with retry logic, scheduled jobs (score recalculation, expiry cleanup), and batch processing. Connected to Redis queue.">
+        <span class="node-badge badge-railway">veridi-worker</span>
+        <span class="node-icon">⚡</span>
+        <div class="node-name">Job Worker</div>
+        <span class="node-tag">NestJS + BullMQ</span>
+        <div class="node-desc">Async verification jobs, webhook delivery with exponential backoff, Veridi Score recalculation, data cleanup crons</div>
+        <div class="node-pill">BullMQ</div>
+        <div class="node-pill">Redis Queue</div>
+      </div>
+      <div class="node teal" data-tip="Python FastAPI service running AI/ML models for face liveness detection and face matching. Uses passive liveness (no gestures — critical for low-tech African users). GPU-backed Railway instance. Model trained on African face dataset for 99%+ accuracy.">
+        <span class="node-badge badge-railway">veridi-ml</span>
+        <span class="node-icon">🤖</span>
+        <div class="node-name">ML Service</div>
+        <span class="node-tag">Python FastAPI · GPU</span>
+        <div class="node-desc">Passive liveness detection, face match, document OCR. Optimised for African faces. GPU Railway instance</div>
+        <div class="node-pill">FastAPI</div>
+        <div class="node-pill">GPU Instance</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="v-connector">
+    <div class="v-line"></div>
+    <div class="v-dot" style="background:var(--teal);box-shadow:0 0 8px var(--teal)"></div>
+    <div class="v-label">Internal Railway network — private, no public exposure</div>
+    <div class="v-dot" style="background:var(--teal);box-shadow:0 0 8px var(--teal)"></div>
+    <div class="v-line"></div>
+  </div>
+
+  <!-- ── LAYER 3: DATA ───────────────────── -->
+  <div class="layer">
+    <div class="layer-label">Layer 3 — Data Layer <span class="lbl-railway">Railway</span></div>
+    <div class="node-row">
+      <div class="node teal" data-tip="PostgreSQL 15 on Railway with a read replica. Stores all transactional data: clients, API keys (hashed), verification requests, consent records, audit logs, usage records. PII is never stored raw — only hashed tokens. Encrypted at rest via Railway.">
+        <span class="node-badge badge-railway">Primary DB</span>
+        <span class="node-icon">🐘</span>
+        <div class="node-name">PostgreSQL 15</div>
+        <span class="node-tag">Railway Postgres</span>
+        <div class="node-desc">Primary DB + read replica. Clients, hashed API keys, verification records, consent, audit logs. PII-free schema</div>
+        <div class="node-pill">Read Replica</div>
+        <div class="node-pill">Encrypted Rest</div>
+      </div>
+      <div class="node gold" data-tip="Redis 7 on Railway serves multiple purposes: rate limit counters (sliding window per API key), verification result cache (TTL: 24h for NIN, 4h for BVN), BullMQ job queue, and session storage for dashboard JWT tokens.">
+        <span class="node-badge badge-railway">Cache + Queue</span>
+        <span class="node-icon">⚡</span>
+        <div class="node-name">Redis 7</div>
+        <span class="node-tag">Railway Redis</span>
+        <div class="node-desc">Rate limit counters, verification result TTL cache, BullMQ job queue, dashboard session tokens</div>
+        <div class="node-pill">TTL Cache</div>
+        <div class="node-pill">BullMQ</div>
+      </div>
+      <div class="node orange" data-tip="Cloudflare R2 for all binary data. Uploaded identity documents (pre-verification, deleted after processing), generated PDF background check reports, temporary biometric images (deleted after face match, never persisted). Zero egress fees vs S3.">
+        <span class="node-badge badge-cf">Object Store</span>
+        <span class="node-icon">📦</span>
+        <div class="node-name">Cloudflare R2</div>
+        <span class="node-tag">Documents · Reports</span>
+        <div class="node-desc">Uploaded docs (deleted post-verification), PDF reports, temp biometrics. Signed URL access. Zero egress cost</div>
+        <div class="node-pill">Signed URLs</div>
+        <div class="node-pill">Auto-Delete</div>
+      </div>
+      <div class="node teal" data-tip="Cloudflare KV store holds the API key lookup table for edge Workers. When a Worker validates an API key, it reads from KV (microsecond latency) rather than hitting Railway. Key hash, client ID, scopes, and IP allowlist are cached here and synced from PostgreSQL on key events.">
+        <span class="node-badge badge-cf">Edge KV</span>
+        <span class="node-icon">🗝️</span>
+        <div class="node-name">Cloudflare KV</div>
+        <span class="node-tag">API Key Cache</span>
+        <div class="node-desc">Edge API key lookup store. Synced from PostgreSQL on key create/revoke. Microsecond validation at edge</div>
+        <div class="node-pill">Global Edge</div>
+        <div class="node-pill">μs Lookup</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="v-connector">
+    <div class="v-line"></div>
+    <div class="v-dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+    <div class="v-label" style="color:var(--green)">Verified requests to external data sources · Encrypted · Audited</div>
+    <div class="v-dot" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+    <div class="v-line"></div>
+  </div>
+
+  <!-- ── LAYER 4: EXTERNAL ───────────────── -->
+  <div class="layer">
+    <div class="layer-label">Layer 4 — External Data Sources &amp; Integrations <span class="lbl-ext">External / Licensed</span></div>
+    <div class="node-row">
+      <div class="node green" data-tip="NIMC NVS API — direct licensed access to the National Identity Management Commission database for NIN verification. Phase 1 uses Smile Identity relay. Phase 2 uses direct NIMC NVS access after licence approval. Returns demographic match and confidence score.">
+        <span class="node-badge badge-ext">Phase 1→Direct</span>
+        <span class="node-icon">🪪</span>
+        <div class="node-name">NIMC</div>
+        <span class="node-tag">NIN Verification</span>
+        <div class="node-desc">National Identity Mgmt Commission. Phase 1: via Smile ID relay. Phase 2: direct NVS API after licence</div>
+        <div class="node-pill">NVS API</div>
+        <div class="node-pill">Licensed</div>
+      </div>
+      <div class="node green" data-tip="NIBSS (Nigeria Inter-Bank Settlement System) API for BVN verification. Access requires CBN approval and NIBSS partnership agreement. Verifies Bank Verification Number against CBN's central database. Returns name match and status.">
+        <span class="node-badge badge-ext">Partnership</span>
+        <span class="node-icon">🏦</span>
+        <div class="node-name">NIBSS / CBN</div>
+        <span class="node-tag">BVN Verification</span>
+        <div class="node-desc">Nigeria Inter-Bank Settlement System. BVN verification via NIBSS API. CBN approval required</div>
+        <div class="node-pill">NIBSS API</div>
+        <div class="node-pill">CBN Approved</div>
+      </div>
+      <div class="node green" data-tip="FRSC (Federal Road Safety Corps) API for driver's licence verification. Cross-checks licence number against FRSC database. Returns name, expiry, and licence class. Part of Phase 1 Nigeria document suite.">
+        <span class="node-badge badge-ext">Phase 1</span>
+        <span class="node-icon">🚗</span>
+        <div class="node-name">FRSC</div>
+        <span class="node-tag">Driver's Licence</span>
+        <div class="node-desc">Federal Road Safety Corps. Licence number verification against central FRSC database</div>
+        <div class="node-pill">FRSC API</div>
+      </div>
+      <div class="node green" data-tip="Smile Identity is used in Phase 1 as a relay for NIMC and other government data sources while direct licensing is being secured. Also provides fallback biometric services. Will be partially replaced in Phase 2 as direct licences are obtained.">
+        <span class="node-badge badge-ext">Phase 1 Relay</span>
+        <span class="node-icon">😊</span>
+        <div class="node-name">Smile Identity</div>
+        <span class="node-tag">Phase 1 Relay · Biometrics</span>
+        <div class="node-desc">Interim relay for NIMC/government sources. Also biometric fallback. Replaced by direct licences in Phase 2</div>
+        <div class="node-pill">Relay</div>
+        <div class="node-pill">Fallback</div>
+      </div>
+      <div class="node gold" data-tip="Paystack handles billing for Veridi's client subscriptions and pay-per-call invoicing. Clients add a payment method in the dashboard; Paystack recurring subscriptions handle monthly plan billing automatically.">
+        <span class="node-badge badge-ext">Billing</span>
+        <span class="node-icon">💳</span>
+        <div class="node-name">Paystack</div>
+        <span class="node-tag">Billing · Subscriptions</span>
+        <div class="node-desc">Client billing. Pay-per-call invoicing and monthly plan subscriptions. Webhook for payment events</div>
+        <div class="node-pill">Subscriptions</div>
+        <div class="node-pill">Webhooks</div>
+      </div>
+      <div class="node teal" data-tip="Termii handles OTP delivery for dashboard authentication (2FA) and notifications to subjects about their verification status. Covers all major Nigerian telcos with high delivery rates.">
+        <span class="node-badge badge-ext">SMS</span>
+        <span class="node-icon">📱</span>
+        <div class="node-name">Termii</div>
+        <span class="node-tag">OTP · SMS Notifications</span>
+        <div class="node-desc">Dashboard 2FA OTPs, subject verification status notifications. Nigerian telco coverage</div>
+        <div class="node-pill">OTP</div>
+        <div class="node-pill">Notifications</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECURITY MATRIX ─────────────────── -->
+  <div class="section-hd">Security Architecture Matrix</div>
+  <div class="matrix-grid">
+    <div class="matrix-cell orange">
+      <div class="matrix-cell-title"><span class="icon">🌐</span> Cloudflare Edge</div>
+      <div class="matrix-item">WAF — OWASP Core + custom Veridi rules</div>
+      <div class="matrix-item">DDoS — L3/L4/L7 auto-mitigation</div>
+      <div class="matrix-item">Rate limiting — per key, per IP, per endpoint</div>
+      <div class="matrix-item">Bot scoring — challenge &lt;50 score requests</div>
+      <div class="matrix-item">mTLS — Worker ↔ Railway internal comms</div>
+    </div>
+    <div class="matrix-cell purple">
+      <div class="matrix-cell-title"><span class="icon">🔑</span> API Authentication</div>
+      <div class="matrix-item">API keys — SHA-256 hashed, never stored plain</div>
+      <div class="matrix-item">JWT dashboard sessions — 15min access / 7d refresh</div>
+      <div class="matrix-item">HMAC-SHA256 — all outbound webhook payloads signed</div>
+      <div class="matrix-item">Idempotency keys — safe to retry, no double-charge</div>
+      <div class="matrix-item">Consent token — required on every verification call</div>
+    </div>
+    <div class="matrix-cell teal">
+      <div class="matrix-cell-title"><span class="icon">🗃️</span> Data Protection</div>
+      <div class="matrix-item">PII tokenisation — NIN/BVN → Argon2id hash only</div>
+      <div class="matrix-item">AES-256 — field encryption for sensitive columns</div>
+      <div class="matrix-item">Raw biometrics — never persisted, deleted post-match</div>
+      <div class="matrix-item">Audit log — immutable append-only access trail</div>
+      <div class="matrix-item">NDPA 2023 — consent records, right to erasure API</div>
+    </div>
+    <div class="matrix-cell blue">
+      <div class="matrix-cell-title"><span class="icon">🚂</span> Railway Hardening</div>
+      <div class="matrix-item">No public Railway URLs exposed — all via Cloudflare</div>
+      <div class="matrix-item">Env vars — all secrets in Railway environment, no .env files</div>
+      <div class="matrix-item">Private networking — services communicate internally only</div>
+      <div class="matrix-item">Docker — no shell access in production containers</div>
+      <div class="matrix-item">Health checks — auto-restart on failure, zero-downtime deploy</div>
+    </div>
+    <div class="matrix-cell red">
+      <div class="matrix-cell-title"><span class="icon">⚠️</span> Abuse Prevention</div>
+      <div class="matrix-item">Consent token expiry — 10 min, signed, one-time use</div>
+      <div class="matrix-item">Verification dedup — same NIN + client: serve cache</div>
+      <div class="matrix-item">Suspicious pattern detection — flag rapid sequential calls</div>
+      <div class="matrix-item">IP allowlisting — enterprise clients can lock to IPs</div>
+      <div class="matrix-item">Client spend caps — configurable max monthly spend limit</div>
+    </div>
+    <div class="matrix-cell gold">
+      <div class="matrix-cell-title"><span class="icon">📊</span> Observability</div>
+      <div class="matrix-item">Sentry — error tracking with PII scrubbing enabled</div>
+      <div class="matrix-item">Railway Metrics — CPU, memory, request rate per service</div>
+      <div class="matrix-item">Cloudflare Analytics — edge request data, attack logs</div>
+      <div class="matrix-item">Custom dashboards — latency p50/p95/p99 per endpoint</div>
+      <div class="matrix-item">Alerting — PagerDuty on p99 &gt;2s or error rate &gt;1%</div>
+    </div>
+  </div>
+
+  <!-- ── ENV TABLE ─────────────────────────── -->
+  <div class="section-hd">Environment Strategy</div>
+  <table class="env-table">
+    <thead>
+      <tr>
+        <th>Environment</th>
+        <th>Railway Project</th>
+        <th>Cloudflare Zone</th>
+        <th>Database</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Development</strong></td>
+        <td>veridi-dev</td>
+        <td>dev.veridi.io</td>
+        <td>Local PostgreSQL</td>
+        <td>Feature branches, local iteration</td>
+      </tr>
+      <tr>
+        <td><strong>Staging</strong></td>
+        <td>veridi-staging</td>
+        <td>staging.veridi.africa</td>
+        <td>Railway Postgres (small)</td>
+        <td>Pre-prod, load testing, client UAT</td>
+      </tr>
+      <tr>
+        <td><strong>Production</strong></td>
+        <td>veridi-prod</td>
+        <td>veridi.africa / veridi.io</td>
+        <td>Railway Postgres + Read Replica</td>
+        <td>Live customer traffic</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── RAILWAY SERVICES TABLE ──────────── -->
+  <div class="section-hd">Railway Services Configuration</div>
+  <table class="env-table">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Stack</th>
+        <th>Instance</th>
+        <th>Scale</th>
+        <th>Health Check</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>veridi-api</strong></td>
+        <td>NestJS + Docker</td>
+        <td>2 vCPU / 512MB</td>
+        <td>Auto-scale 1→8 replicas</td>
+        <td>GET /health</td>
+      </tr>
+      <tr>
+        <td><strong>veridi-worker</strong></td>
+        <td>NestJS + BullMQ</td>
+        <td>1 vCPU / 256MB</td>
+        <td>Manual scale 1→4</td>
+        <td>BullMQ queue depth</td>
+      </tr>
+      <tr>
+        <td><strong>veridi-ml</strong></td>
+        <td>Python FastAPI</td>
+        <td>4 vCPU / 2GB GPU</td>
+        <td>Manual scale 1→2</td>
+        <td>GET /health</td>
+      </tr>
+      <tr>
+        <td><strong>veridi-web</strong></td>
+        <td>Next.js 14</td>
+        <td>1 vCPU / 256MB</td>
+        <td>Cloudflare Pages (static)</td>
+        <td>GET /</td>
+      </tr>
+      <tr>
+        <td><strong>veridi-dashboard</strong></td>
+        <td>Next.js 14</td>
+        <td>1 vCPU / 256MB</td>
+        <td>1 replica (ZT protected)</td>
+        <td>GET /</td>
+      </tr>
+      <tr>
+        <td><strong>veridi-postgres</strong></td>
+        <td>PostgreSQL 15</td>
+        <td>2 vCPU / 1GB</td>
+        <td>Primary + 1 Read Replica</td>
+        <td>pg_isready</td>
+      </tr>
+      <tr>
+        <td><strong>veridi-redis</strong></td>
+        <td>Redis 7</td>
+        <td>1 vCPU / 256MB</td>
+        <td>Single (HA via Railway)</td>
+        <td>PING</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div><!-- end arch-container -->
+
+<div class="scroll-hint">Hover nodes for details · Scroll to explore</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-title" id="tooltip-title"></div>
+  <div id="tooltip-body"></div>
+</div>
+
+<script>
+// ── TOOLTIP ────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+const ttTitle = document.getElementById('tooltip-title');
+const ttBody  = document.getElementById('tooltip-body');
+
+document.querySelectorAll('.node[data-tip]').forEach(node => {
+  node.addEventListener('mouseenter', e => {
+    ttTitle.textContent = node.querySelector('.node-name').textContent;
+    ttBody.textContent  = node.dataset.tip;
+    tooltip.classList.add('visible');
+    moveTooltip(e);
+  });
+  node.addEventListener('mousemove', moveTooltip);
+  node.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+});
+
+function moveTooltip(e) {
+  const x = e.clientX + 16;
+  const y = e.clientY + 16;
+  const w = tooltip.offsetWidth;
+  const h = tooltip.offsetHeight;
+  tooltip.style.left = (x + w > window.innerWidth ? x - w - 32 : x) + 'px';
+  tooltip.style.top  = (y + h > window.innerHeight ? y - h - 32 : y) + 'px';
+}
+
+// ── STAGGERED ENTRY ANIMATION ──────────────────────────
+const nodes = document.querySelectorAll('.node, .matrix-cell, .flow-step');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '0';
+      e.target.style.transform = 'translateY(16px)';
+      setTimeout(() => {
+        e.target.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }, (parseInt(e.target.dataset.idx || 0)) * 60);
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+nodes.forEach((n, i) => { n.dataset.idx = i; obs.observe(n); });
+
+// ── HIDE SCROLL HINT ON SCROLL ─────────────────────────
+window.addEventListener('scroll', () => {
+  document.querySelector('.scroll-hint').style.opacity = '0';
+}, { once: true });
+</script>
+</body>
+</html>

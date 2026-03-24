@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veridi Admin — Operations Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#040608;
+  --deep:#06080D;
+  --panel:#0A0D14;
+  --panel2:#0D1018;
+  --panel3:#10141E;
+  --border:#16202E;
+  --border2:#1C2A3A;
+  --amber:#F59E0B;
+  --amber-dim:#B07008;
+  --amber-pale:rgba(245,158,11,0.07);
+  --amber-glow:rgba(245,158,11,0.2);
+  --red:#EF4444;
+  --red-pale:rgba(239,68,68,0.08);
+  --green:#10B981;
+  --green-pale:rgba(16,185,129,0.08);
+  --blue:#3B82F6;
+  --blue-pale:rgba(59,130,246,0.08);
+  --purple:#8B5CF6;
+  --teal:#00D4B4;
+  --text:#D8E2EE;
+  --text2:#6A869A;
+  --text3:#2E4055;
+  --sidebar-w:220px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--void);color:var(--text);font-family:'Syne',sans-serif;display:flex}
+
+/* ── SIDEBAR ────────────────────────────── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--deep);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;
+}
+.sb-logo{
+  padding:20px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.sb-logo-mark{
+  width:28px;height:28px;background:var(--amber);
+  border-radius:3px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;color:var(--void);flex-shrink:0;
+}
+.sb-logo-name{font-weight:800;font-size:17px;letter-spacing:-0.02em}
+.sb-logo-name .dot{color:var(--amber)}
+.sb-admin-badge{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:0.14em;text-transform:uppercase;
+  padding:2px 7px;border-radius:2px;
+  background:rgba(245,158,11,0.12);color:var(--amber);
+  border:1px solid rgba(245,158,11,0.2);
+}
+
+.sb-nav{padding:12px 6px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.sb-sec{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:0.24em;text-transform:uppercase;
+  color:var(--text3);padding:10px 8px 4px;
+}
+.sb-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 8px;border-radius:3px;
+  font-size:12px;font-weight:500;
+  color:var(--text2);cursor:pointer;
+  transition:background .15s,color .15s;
+  position:relative;
+}
+.sb-item:hover{background:var(--panel);color:var(--text)}
+.sb-item.active{background:var(--panel2);color:var(--amber)}
+.sb-item.active::before{
+  content:'';position:absolute;left:0;top:4px;bottom:4px;
+  width:2px;background:var(--amber);border-radius:0 2px 2px 0;
+}
+.sb-item-icon{font-size:13px;flex-shrink:0;width:18px;text-align:center}
+.sb-count{
+  margin-left:auto;
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
+  padding:1px 6px;border-radius:2px;
+}
+.sc-red{background:var(--red-pale);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.sc-amber{background:var(--amber-pale);color:var(--amber);border:1px solid rgba(245,158,11,0.2)}
+.sc-green{background:var(--green-pale);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.sc-blue{background:var(--blue-pale);color:var(--blue);border:1px solid rgba(59,130,246,0.2)}
+
+.sb-footer{
+  padding:10px 6px;border-top:1px solid var(--border);
+}
+.sb-admin-user{
+  display:flex;align-items:center;gap:8px;
+  padding:8px;border-radius:3px;
+  cursor:pointer;transition:background .15s;
+}
+.sb-admin-user:hover{background:var(--panel)}
+.sb-admin-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#2A1A04,#3D2A06);
+  border:1px solid rgba(245,158,11,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:var(--amber);flex-shrink:0;
+}
+.sb-admin-info-name{font-size:11px;font-weight:600;color:var(--text)}
+.sb-admin-info-role{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--amber);letter-spacing:0.06em}
+.sb-admin-status{
+  margin-left:auto;width:7px;height:7px;border-radius:50%;
+  background:var(--green);box-shadow:0 0 5px var(--green);
+}
+
+/* ── MAIN ───────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+.topbar{
+  height:52px;flex-shrink:0;
+  background:var(--deep);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:12px;
+}
+.topbar-breadcrumb{
+  display:flex;align-items:center;gap:8px;flex:1;
+}
+.tb-crumb{font-size:12px;color:var(--text2)}
+.tb-sep{color:var(--text3);font-size:10px}
+.tb-current{font-size:13px;font-weight:700;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.tb-search{
+  display:flex;align-items:center;gap:6px;
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:3px;padding:6px 12px;min-width:200px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+}
+.tb-search input{background:none;border:none;outline:none;color:var(--text);font-size:11px;width:100%;font-family:'JetBrains Mono',monospace}
+.tb-search input::placeholder{color:var(--text3)}
+.tb-icon-btn{
+  width:32px;height:32px;border-radius:3px;
+  background:var(--panel);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:13px;color:var(--text2);
+  transition:all .2s;position:relative;
+}
+.tb-icon-btn:hover{border-color:var(--amber);color:var(--amber)}
+.tb-notif-dot{
+  position:absolute;top:6px;right:6px;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--red);border:1px solid var(--deep);
+}
+.tb-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 14px;border-radius:3px;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:0.08em;border:none;transition:all .2s;
+}
+.tb-btn.amber{background:var(--amber);color:var(--void);font-weight:600}
+.tb-btn.amber:hover{background:#FCD34D}
+.tb-btn.ghost{background:var(--panel);border:1px solid var(--border2);color:var(--text2)}
+.tb-btn.ghost:hover{border-color:var(--amber);color:var(--amber)}
+
+.content{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+
+/* ── SYSTEM STATUS BAR ───────────────────── */
+.system-status{
+  display:flex;align-items:center;gap:20px;
+  padding:10px 16px;
+  background:var(--panel);border:1px solid var(--border2);
+  border-radius:4px;
+  flex-wrap:wrap;
+}
+.sys-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--text3);margin-right:4px;
+}
+.sys-item{display:flex;align-items:center;gap:8px}
+.sys-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sys-dot.ok{background:var(--green);box-shadow:0 0 5px var(--green)}
+.sys-dot.warn{background:var(--amber);box-shadow:0 0 5px var(--amber)}
+.sys-dot.down{background:var(--red);box-shadow:0 0 5px var(--red);animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.sys-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2)}
+.sys-divider{width:1px;height:16px;background:var(--border2);flex-shrink:0}
+.sys-overall{
+  margin-left:auto;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--green);letter-spacing:0.1em;
+  display:flex;align-items:center;gap:6px;
+}
+
+/* ── KPI GRID ────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kpi{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;padding:16px;
+  position:relative;overflow:hidden;
+}
+.kpi::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:var(--kpi-color,var(--amber));opacity:0.5;
+}
+.kpi.red{--kpi-color:var(--red)}
+.kpi.green{--kpi-color:var(--green)}
+.kpi.blue{--kpi-color:var(--blue)}
+.kpi.purple{--kpi-color:var(--purple)}
+.kpi-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:0.14em;text-transform:uppercase;color:var(--text2);
+  margin-bottom:10px;
+}
+.kpi-val{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:26px;color:var(--text);letter-spacing:-0.02em;
+  line-height:1;margin-bottom:6px;
+}
+.kpi-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+.kpi-trend{
+  font-family:'JetBrains Mono',monospace;font-size:9px;margin-top:4px;
+}
+.trend-up{color:var(--green)}
+.trend-down{color:var(--red)}
+.trend-same{color:var(--text3)}
+
+/* ── MAIN GRID ───────────────────────────── */
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.full-width{grid-column:1/-1}
+.card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;overflow:hidden;
+}
+.card-hd{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-hd-left{display:flex;align-items:center;gap:10px}
+.card-title{font-size:12px;font-weight:700;letter-spacing:-0.01em}
+.card-badge{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:2px 7px;border-radius:2px;letter-spacing:0.08em;
+}
+.cb-red{background:var(--red-pale);color:var(--red);border:1px solid rgba(239,68,68,0.15)}
+.cb-amber{background:var(--amber-pale);color:var(--amber);border:1px solid rgba(245,158,11,0.15)}
+.cb-green{background:var(--green-pale);color:var(--green);border:1px solid rgba(16,185,129,0.15)}
+.cb-blue{background:var(--blue-pale);color:var(--blue);border:1px solid rgba(59,130,246,0.15)}
+.card-hd-btn{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:5px 12px;border-radius:3px;cursor:pointer;
+  transition:all .2s;border:1px solid var(--border2);
+  background:transparent;color:var(--text2);
+}
+.card-hd-btn:hover{border-color:var(--amber);color:var(--amber)}
+.card-hd-btn.danger:hover{border-color:var(--red);color:var(--red)}
+
+/* ── QUEUE ITEMS ─────────────────────────── */
+.queue-list{max-height:280px;overflow-y:auto}
+.queue-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .15s;
+}
+.queue-item:last-child{border-bottom:none}
+.queue-item:hover{background:rgba(255,255,255,0.02)}
+.queue-item.urgent{border-left:2px solid var(--red)}
+.queue-item.review{border-left:2px solid var(--amber)}
+.queue-icon{
+  width:32px;height:32px;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.qi-red{background:var(--red-pale);border:1px solid rgba(239,68,68,0.15)}
+.qi-amber{background:var(--amber-pale);border:1px solid rgba(245,158,11,0.15)}
+.qi-blue{background:var(--blue-pale);border:1px solid rgba(59,130,246,0.15)}
+.queue-body{flex:1;min-width:0}
+.queue-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+.queue-meta{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--text2);display:flex;gap:10px;flex-wrap:wrap;
+}
+.queue-time{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);flex-shrink:0;margin-top:2px}
+.queue-actions{display:flex;gap:6px;align-items:flex-start;flex-shrink:0}
+.qa-btn{
+  padding:4px 10px;border-radius:2px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;border:none;transition:all .2s;font-weight:600;
+}
+.qa-approve{background:var(--green-pale);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.qa-approve:hover{background:var(--green);color:var(--void)}
+.qa-reject{background:var(--red-pale);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.qa-reject:hover{background:var(--red);color:var(--void)}
+.qa-view{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.qa-view:hover{border-color:var(--amber);color:var(--amber)}
+
+/* ── CLIENTS TABLE ───────────────────────── */
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--text3);padding:9px 14px;text-align:left;
+  border-bottom:1px solid var(--border);font-weight:500;
+  white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,0.015)}
+tbody td{padding:10px 14px;font-size:11px;color:var(--text);white-space:nowrap}
+.td-mono{font-family:'JetBrains Mono',monospace;font-size:10px}
+.td-muted{color:var(--text2)}
+
+.client-name{display:flex;align-items:center;gap:8px}
+.client-avatar{
+  width:24px;height:24px;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;flex-shrink:0;
+  background:var(--panel2);border:1px solid var(--border2);
+}
+.plan-tag{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:2px 7px;border-radius:2px;letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.pt-growth{background:var(--amber-pale);color:var(--amber);border:1px solid rgba(245,158,11,0.15)}
+.pt-starter{background:var(--blue-pale);color:var(--blue);border:1px solid rgba(59,130,246,0.15)}
+.pt-scale{background:rgba(139,92,246,0.08);color:var(--purple);border:1px solid rgba(139,92,246,0.15)}
+.pt-enterprise{background:rgba(16,185,129,0.08);color:var(--green);border:1px solid rgba(16,185,129,0.15)}
+
+.acct-status{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:2px 7px;border-radius:2px;letter-spacing:0.08em;
+  text-transform:uppercase;display:inline-flex;align-items:center;gap:4px;
+}
+.as-active{background:var(--green-pale);color:var(--green);border:1px solid rgba(16,185,129,0.15)}
+.as-suspended{background:var(--red-pale);color:var(--red);border:1px solid rgba(239,68,68,0.15)}
+.as-pending{background:var(--amber-pale);color:var(--amber);border:1px solid rgba(245,158,11,0.15)}
+.as-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+.action-dots{color:var(--text3);cursor:pointer;padding:0 4px;font-size:14px}
+.action-dots:hover{color:var(--amber)}
+
+/* ── LIVE FEED ───────────────────────────── */
+.live-feed{max-height:220px;overflow-y:auto;padding:8px 0}
+.feed-item{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 14px;transition:background .12s;cursor:default;
+}
+.feed-item:hover{background:rgba(255,255,255,0.02)}
+.feed-time{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:var(--text3);flex-shrink:0;width:46px;
+}
+.feed-type{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  padding:1px 6px;border-radius:2px;letter-spacing:0.1em;
+  flex-shrink:0;
+}
+.ft-nin{background:rgba(0,212,180,0.1);color:var(--teal);border:1px solid rgba(0,212,180,0.15)}
+.ft-bvn{background:var(--blue-pale);color:var(--blue);border:1px solid rgba(59,130,246,0.15)}
+.ft-face{background:var(--amber-pale);color:var(--amber);border:1px solid rgba(245,158,11,0.15)}
+.ft-bg{background:rgba(139,92,246,0.08);color:var(--purple);border:1px solid rgba(139,92,246,0.15)}
+.feed-client{font-size:11px;color:var(--text2);flex:1}
+.feed-status{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  flex-shrink:0;
+}
+.fs-ok{color:var(--green)}
+.fs-fail{color:var(--red)}
+.fs-pend{color:var(--amber)}
+.feed-lat{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);flex-shrink:0;width:52px;text-align:right}
+
+/* ── REVENUE CHART ───────────────────────── */
+.rev-chart{
+  padding:16px;display:flex;align-items:flex-end;gap:4px;height:120px;
+}
+.rev-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.rev-bar{
+  width:100%;border-radius:2px 2px 0 0;
+  background:linear-gradient(to top,var(--amber-dim),var(--amber));
+  min-height:3px;transition:height .4s ease;
+  position:relative;cursor:pointer;
+}
+.rev-bar:hover{filter:brightness(1.15)}
+.rev-bar::after{
+  content:attr(data-val);
+  position:absolute;top:-18px;left:50%;transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text2);
+  white-space:nowrap;opacity:0;transition:opacity .2s;
+}
+.rev-bar:hover::after{opacity:1}
+.rev-month{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3)}
+
+/* ── SOURCE BREAKDOWN ────────────────────── */
+.source-list{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.source-item{display:flex;align-items:center;gap:10px}
+.source-label{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--text2);min-width:80px;
+}
+.source-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.source-fill{height:100%;border-radius:3px}
+.source-pct{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);width:30px;text-align:right}
+
+/* ── DATA SOURCE HEALTH ──────────────────── */
+.ds-list{padding:10px 16px;display:flex;flex-direction:column;gap:6px}
+.ds-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;background:var(--panel2);
+  border:1px solid var(--border);border-radius:3px;
+}
+.ds-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ds-dot.ok{background:var(--green);box-shadow:0 0 5px var(--green)}
+.ds-dot.warn{background:var(--amber);box-shadow:0 0 5px var(--amber);animation:blink 2s ease-in-out infinite}
+.ds-dot.down{background:var(--red);box-shadow:0 0 5px var(--red);animation:blink 1s ease-in-out infinite}
+.ds-name{font-size:12px;font-weight:500;color:var(--text);flex:1}
+.ds-source{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2)}
+.ds-latency{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);min-width:52px;text-align:right}
+.ds-uptime{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  min-width:44px;text-align:right;
+}
+.up-ok{color:var(--green)}
+.up-warn{color:var(--amber)}
+
+/* ── SCROLLBAR ───────────────────────────── */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── AUDIT ROW ───────────────────────────── */
+.audit-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px;border-bottom:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  cursor:default;transition:background .12s;
+}
+.audit-item:hover{background:rgba(255,255,255,0.015)}
+.audit-item:last-child{border-bottom:none}
+.audit-time{color:var(--text3);width:52px;flex-shrink:0}
+.audit-actor{color:var(--amber);width:72px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.audit-action{color:var(--text);flex:1}
+.audit-entity{color:var(--text2);width:80px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-mark">V</div>
+    <span class="sb-logo-name">Veridi<span class="dot">.</span></span>
+    <span class="sb-admin-badge">Admin</span>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-sec">Operations</div>
+    <div class="sb-item active"><span class="sb-item-icon">⬡</span> Overview</div>
+    <div class="sb-item"><span class="sb-item-icon">⚡</span> Live Feed <span class="sb-count sc-green">●</span></div>
+    <div class="sb-item"><span class="sb-item-icon">🗂</span> Verification Queue <span class="sb-count sc-red">7</span></div>
+    <div class="sb-item"><span class="sb-item-icon">⚠</span> Disputes <span class="sb-count sc-amber">3</span></div>
+
+    <div class="sb-sec">Clients</div>
+    <div class="sb-item"><span class="sb-item-icon">🏢</span> All Clients</div>
+    <div class="sb-item"><span class="sb-item-icon">✓</span> Pending Approval <span class="sb-count sc-amber">4</span></div>
+    <div class="sb-item"><span class="sb-item-icon">🚫</span> Suspended</div>
+    <div class="sb-item"><span class="sb-item-icon">💳</span> Billing & Revenue</div>
+
+    <div class="sb-sec">Infrastructure</div>
+    <div class="sb-item"><span class="sb-item-icon">🔌</span> Data Sources</div>
+    <div class="sb-item"><span class="sb-item-icon">🔔</span> Webhook Monitor</div>
+    <div class="sb-item"><span class="sb-item-icon">📊</span> Platform Analytics</div>
+
+    <div class="sb-sec">Security</div>
+    <div class="sb-item"><span class="sb-item-icon">📜</span> Audit Log</div>
+    <div class="sb-item"><span class="sb-item-icon">🚩</span> Flagged Calls <span class="sb-count sc-red">12</span></div>
+    <div class="sb-item"><span class="sb-item-icon">⚙</span> Configuration</div>
+  </nav>
+
+  <div class="sb-footer">
+    <div class="sb-admin-user">
+      <div class="sb-admin-avatar">SA</div>
+      <div style="flex:1;overflow:hidden">
+        <div class="sb-admin-info-name">Samuel A.</div>
+        <div class="sb-admin-info-role">Super Admin</div>
+      </div>
+      <div class="sb-admin-status"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-breadcrumb">
+      <span class="tb-crumb">Admin</span>
+      <span class="tb-sep">›</span>
+      <span class="tb-current">Operations Overview</span>
+    </div>
+    <div class="topbar-right">
+      <div class="tb-search">
+        <span style="color:var(--text3);font-size:12px">⌕</span>
+        <input type="text" placeholder="Search clients, references, logs...">
+      </div>
+      <div class="tb-icon-btn">
+        🔔
+        <div class="tb-notif-dot"></div>
+      </div>
+      <button class="tb-btn ghost">Export Report</button>
+      <button class="tb-btn amber">+ Approve Batch</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- System Status -->
+    <div class="system-status">
+      <span class="sys-label">System</span>
+      <div class="sys-item"><div class="sys-dot ok"></div><span class="sys-name">Cloudflare WAF</span></div>
+      <div class="sys-divider"></div>
+      <div class="sys-item"><div class="sys-dot ok"></div><span class="sys-name">Railway API</span></div>
+      <div class="sys-divider"></div>
+      <div class="sys-item"><div class="sys-dot ok"></div><span class="sys-name">PostgreSQL</span></div>
+      <div class="sys-divider"></div>
+      <div class="sys-item"><div class="sys-dot ok"></div><span class="sys-name">Redis</span></div>
+      <div class="sys-divider"></div>
+      <div class="sys-item"><div class="sys-dot warn"></div><span class="sys-name">NIMC NVS</span></div>
+      <div class="sys-divider"></div>
+      <div class="sys-item"><div class="sys-dot ok"></div><span class="sys-name">NIBSS</span></div>
+      <div class="sys-divider"></div>
+      <div class="sys-item"><div class="sys-dot ok"></div><span class="sys-name">BullMQ Worker</span></div>
+      <span class="sys-overall">● All systems operational</span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-lbl">Total Clients</div>
+        <div class="kpi-val">47</div>
+        <div class="kpi-sub">Active accounts</div>
+        <div class="kpi-trend trend-up">+4 this month</div>
+      </div>
+      <div class="kpi red">
+        <div class="kpi-lbl">Pending Queue</div>
+        <div class="kpi-val" style="color:var(--red)">7</div>
+        <div class="kpi-sub">Need review</div>
+        <div class="kpi-trend trend-down">↑ 3 from yesterday</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">API Calls Today</div>
+        <div class="kpi-val">84.2k</div>
+        <div class="kpi-sub">All clients</div>
+        <div class="kpi-trend trend-up">↑ 12% vs yesterday</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-lbl">MRR</div>
+        <div class="kpi-val" style="color:var(--green)">₦4.2M</div>
+        <div class="kpi-sub">Monthly recurring</div>
+        <div class="kpi-trend trend-up">↑ ₦620k MoM</div>
+      </div>
+      <div class="kpi purple">
+        <div class="kpi-lbl">Error Rate</div>
+        <div class="kpi-val" style="color:var(--purple)">0.8%</div>
+        <div class="kpi-sub">Last 24 hours</div>
+        <div class="kpi-trend trend-same">→ Within SLA</div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+
+      <!-- Verification Queue -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-hd-left">
+            <div class="card-title">Verification Queue</div>
+            <span class="card-badge cb-red">7 Pending</span>
+          </div>
+          <button class="card-hd-btn">View All</button>
+        </div>
+        <div class="queue-list" id="queueList">
+          <!-- injected -->
+        </div>
+      </div>
+
+      <!-- Data Source Health -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-hd-left">
+            <div class="card-title">Data Source Health</div>
+            <span class="card-badge cb-amber">1 Degraded</span>
+          </div>
+          <button class="card-hd-btn">Manage</button>
+        </div>
+        <div class="ds-list">
+          <div class="ds-item">
+            <div class="ds-dot ok"></div>
+            <div style="flex:1">
+              <div class="ds-name">NIMC NVS API</div>
+              <div class="ds-source">NIN Verification · Direct licence</div>
+            </div>
+            <div class="ds-latency">342ms</div>
+            <div class="ds-uptime up-ok">99.9%</div>
+          </div>
+          <div class="ds-item">
+            <div class="ds-dot warn"></div>
+            <div style="flex:1">
+              <div class="ds-name">Smile Identity</div>
+              <div class="ds-source">Biometric relay · Phase 1</div>
+            </div>
+            <div class="ds-latency">1,240ms</div>
+            <div class="ds-uptime up-warn">97.2%</div>
+          </div>
+          <div class="ds-item">
+            <div class="ds-dot ok"></div>
+            <div style="flex:1">
+              <div class="ds-name">NIBSS / BVN</div>
+              <div class="ds-source">BVN Verification · Partnership</div>
+            </div>
+            <div class="ds-latency">580ms</div>
+            <div class="ds-uptime up-ok">99.7%</div>
+          </div>
+          <div class="ds-item">
+            <div class="ds-dot ok"></div>
+            <div style="flex:1">
+              <div class="ds-name">FRSC</div>
+              <div class="ds-source">Driver's Licence · API</div>
+            </div>
+            <div class="ds-latency">620ms</div>
+            <div class="ds-uptime up-ok">98.9%</div>
+          </div>
+          <div class="ds-item">
+            <div class="ds-dot ok"></div>
+            <div style="flex:1">
+              <div class="ds-name">Paystack</div>
+              <div class="ds-source">Billing · Subscriptions</div>
+            </div>
+            <div class="ds-latency">180ms</div>
+            <div class="ds-uptime up-ok">99.99%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client Table -->
+      <div class="card full-width">
+        <div class="card-hd">
+          <div class="card-hd-left">
+            <div class="card-title">Client Accounts</div>
+            <span class="card-badge cb-green">47 Active</span>
+            <span class="card-badge cb-amber" style="margin-left:4px">4 Pending</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="card-hd-btn">Filter</button>
+            <button class="card-hd-btn">Export</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>Calls (30d)</th>
+                <th>MRR</th>
+                <th>Joined</th>
+                <th>Last Active</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="clientTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Live Feed -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-hd-left">
+            <div class="card-title">Live API Feed</div>
+            <span class="card-badge cb-green">● Live</span>
+          </div>
+          <button class="card-hd-btn">Pause</button>
+        </div>
+        <div class="live-feed" id="liveFeed"></div>
+      </div>
+
+      <!-- Revenue Chart -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="card-hd-left">
+            <div class="card-title">Monthly Revenue</div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green)">↑ +17.3% MoM</div>
+        </div>
+        <div class="rev-chart" id="revChart"></div>
+        <div class="source-list">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:4px">Revenue by source</div>
+          <div class="source-item">
+            <div class="source-label">Subscriptions</div>
+            <div class="source-track"><div class="source-fill" style="width:62%;background:var(--amber)"></div></div>
+            <div class="source-pct">62%</div>
+          </div>
+          <div class="source-item">
+            <div class="source-label">Pay-per-call</div>
+            <div class="source-track"><div class="source-fill" style="width:28%;background:var(--blue)"></div></div>
+            <div class="source-pct">28%</div>
+          </div>
+          <div class="source-item">
+            <div class="source-label">Background</div>
+            <div class="source-track"><div class="source-fill" style="width:10%;background:var(--purple)"></div></div>
+            <div class="source-pct">10%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Log -->
+      <div class="card full-width">
+        <div class="card-hd">
+          <div class="card-hd-left">
+            <div class="card-title">Audit Log</div>
+            <span class="card-badge cb-blue">Immutable</span>
+          </div>
+          <button class="card-hd-btn">Export</button>
+        </div>
+        <div id="auditLog"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+// ── VERIFICATION QUEUE ────────────────────────────────────────
+const queueData = [
+  {icon:'🪪',cls:'qi-amber',type:'urgent',title:'NIN Mismatch — Blessing A.',meta:'NIN: 9876543210 · Face confidence: 61%',time:'2m ago',actions:['approve','reject','view']},
+  {icon:'📋',cls:'qi-red',type:'urgent',title:'Background Check Flagged — Michael O.',meta:'Employment gap 2021–2023 unverified · 3 references unreachable',time:'8m ago',actions:['approve','reject','view']},
+  {icon:'🪪',cls:'qi-amber',type:'review',title:'NIN Expired — Chioma E.',meta:'NIN issued 2018, not renewed · Client: MedStaff NG',time:'15m ago',actions:['approve','reject','view']},
+  {icon:'🏢',cls:'qi-blue',type:'review',title:'New Client KYB — QuickHire Ltd',meta:'CAC: RC-1284936 · Director NIN pending · Plan: Growth',time:'22m ago',actions:['approve','reject','view']},
+  {icon:'⚠',cls:'qi-red',type:'urgent',title:'Suspicious Call Pattern — API Key vrd_live_7tG',meta:'482 calls in 3 min · IP: 185.220.x.x · Possible abuse',time:'31m ago',actions:['view']},
+];
+
+const ql = document.getElementById('queueList');
+queueData.forEach(q => {
+  const actions = q.actions.map(a => {
+    const cls = a==='approve'?'qa-approve':a==='reject'?'qa-reject':'qa-view';
+    return `<button class="qa-btn ${cls}">${a==='approve'?'✓ Approve':a==='reject'?'✕ Reject':'View'}</button>`;
+  }).join('');
+  ql.innerHTML += `
+    <div class="queue-item ${q.type}">
+      <div class="queue-icon ${q.cls}">${q.icon}</div>
+      <div class="queue-body">
+        <div class="queue-title">${q.title}</div>
+        <div class="queue-meta"><span>${q.meta}</span></div>
+      </div>
+      <div class="queue-time">${q.time}</div>
+      <div class="queue-actions">${actions}</div>
+    </div>`;
+});
+
+// ── CLIENT TABLE ──────────────────────────────────────────────
+const clients = [
+  {name:'Tendr.ng',init:'TN',plan:'Growth',status:'active',calls:'84,291',mrr:'₦200k',joined:'Jan 2026',last:'2 min ago'},
+  {name:'QuickHire Ltd',init:'QH',plan:'Starter',status:'pending',calls:'—',mrr:'₦0',joined:'Mar 2026',last:'Onboarding'},
+  {name:'MedStaff NG',init:'MS',plan:'Scale',status:'active',calls:'210,847',mrr:'₦750k',joined:'Nov 2025',last:'4 min ago'},
+  {name:'Logistics247',init:'L2',plan:'Growth',status:'active',calls:'52,410',mrr:'₦200k',joined:'Dec 2025',last:'1 hr ago'},
+  {name:'TrustPay Africa',init:'TP',plan:'Enterprise',status:'active',calls:'1.2M',mrr:'Custom',joined:'Oct 2025',last:'12 min ago'},
+  {name:'Kareful App',init:'KA',plan:'Starter',status:'active',calls:'9,841',mrr:'₦50k',joined:'Feb 2026',last:'3 hr ago'},
+  {name:'DomestiqNG',init:'DN',plan:'Growth',status:'suspended',calls:'18,240',mrr:'₦0',joined:'Dec 2025',last:'5 days ago'},
+];
+const planMap = {Growth:'pt-growth',Starter:'pt-starter',Scale:'pt-scale',Enterprise:'pt-enterprise'};
+const statMap = {active:'as-active',pending:'as-pending',suspended:'as-suspended'};
+const ct = document.getElementById('clientTable');
+clients.forEach(c => {
+  ct.innerHTML += `<tr>
+    <td><div class="client-name"><div class="client-avatar" style="color:var(--amber)">${c.init}</div>${c.name}</div></td>
+    <td><span class="plan-tag ${planMap[c.plan]||'pt-starter'}">${c.plan}</span></td>
+    <td><span class="acct-status ${statMap[c.status]}"><span class="as-dot"></span>${c.status}</span></td>
+    <td class="td-mono">${c.calls}</td>
+    <td class="td-mono" style="color:var(--green)">${c.mrr}</td>
+    <td class="td-mono td-muted">${c.joined}</td>
+    <td class="td-mono td-muted">${c.last}</td>
+    <td><span class="action-dots">⋯</span></td>
+  </tr>`;
+});
+
+// ── LIVE FEED ─────────────────────────────────────────────────
+const feedTypes = [
+  {t:'NIN',c:'ft-nin'},{t:'BVN',c:'ft-bvn'},{t:'FACE',c:'ft-face'},{t:'BG',c:'ft-bg'}
+];
+const feedClients = ['Tendr.ng','MedStaff NG','Logistics247','TrustPay Africa','Kareful App'];
+const feedStatuses = [
+  {s:'✓ Verified',c:'fs-ok'},{s:'✓ Verified',c:'fs-ok'},
+  {s:'✓ Verified',c:'fs-ok'},{s:'✗ Failed',c:'fs-fail'},
+  {s:'⏳ Pending',c:'fs-pend'}
+];
+const lf = document.getElementById('liveFeed');
+function addFeedRow(){
+  const t = feedTypes[Math.floor(Math.random()*feedTypes.length)];
+  const st = feedStatuses[Math.floor(Math.random()*feedStatuses.length)];
+  const cl = feedClients[Math.floor(Math.random()*feedClients.length)];
+  const lat = 200+Math.floor(Math.random()*900);
+  const now = new Date();
+  const ts = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')+':'+now.getSeconds().toString().padStart(2,'0');
+  const row = document.createElement('div');
+  row.className = 'feed-item';
+  row.style.opacity='0';row.style.transform='translateY(-6px)';
+  row.innerHTML = `
+    <span class="feed-time">${ts}</span>
+    <span class="feed-type ${t.c}">${t.t}</span>
+    <span class="feed-client">${cl}</span>
+    <span class="feed-status ${st.c}">${st.s}</span>
+    <span class="feed-lat">${lat}ms</span>`;
+  lf.insertBefore(row, lf.firstChild);
+  requestAnimationFrame(()=>{
+    row.style.transition='opacity .25s,transform .25s';
+    row.style.opacity='1';row.style.transform='translateY(0)';
+  });
+  while(lf.children.length>20) lf.removeChild(lf.lastChild);
+}
+for(let i=0;i<12;i++) addFeedRow();
+setInterval(addFeedRow, 1800);
+
+// ── REVENUE CHART ─────────────────────────────────────────────
+const revMonths = ['Oct','Nov','Dec','Jan','Feb','Mar'];
+const revVals   = [1200,1580,2100,2800,3600,4200];
+const maxRev    = Math.max(...revVals);
+const rc = document.getElementById('revChart');
+revMonths.forEach((m,i)=>{
+  const pct = (revVals[i]/maxRev*85).toFixed(0);
+  const wrap = document.createElement('div');
+  wrap.className='rev-bar-wrap';
+  wrap.innerHTML=`<div class="rev-bar" style="height:${pct}%" data-val="₦${(revVals[i]/1000).toFixed(1)}M"></div><div class="rev-month">${m}</div>`;
+  rc.appendChild(wrap);
+});
+
+// ── AUDIT LOG ─────────────────────────────────────────────────
+const auditRows = [
+  {time:'14:32',actor:'samuel.a',action:'Approved NIN verification — edge case override',entity:'vrd_nin_9xK'},
+  {time:'14:28',actor:'samuel.a',action:'Suspended client account — abuse pattern detected',entity:'QuickTest Ltd'},
+  {time:'14:15',actor:'system',action:'Auto-rejected NIN — confidence below threshold (58%)',entity:'vrd_nin_2mP'},
+  {time:'13:58',actor:'samuel.a',action:'Upgraded client plan: Starter → Growth',entity:'Kareful App'},
+  {time:'13:42',actor:'system',action:'Webhook retry 3/5 failed — client endpoint unreachable',entity:'vrd_wh_7tG'},
+  {time:'13:20',actor:'samuel.a',action:'Rotated API key — security audit',entity:'TrustPay Africa'},
+  {time:'12:44',actor:'system',action:'NIMC NVS latency alert — p95 exceeded 1,200ms',entity:'nimc_nvs'},
+];
+const al = document.getElementById('auditLog');
+auditRows.forEach(r=>{
+  al.innerHTML+=`<div class="audit-item">
+    <span class="audit-time">${r.time}</span>
+    <span class="audit-actor">${r.actor}</span>
+    <span class="audit-action">${r.action}</span>
+    <span class="audit-entity" title="${r.entity}">${r.entity}</span>
+  </div>`;
+});
+
+// ── SIDEBAR ACTIVE ────────────────────────────────────────────
+document.querySelectorAll('.sb-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
