@@ -16,7 +16,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Veridi Dashboard",
-  description: "Veridi client dashboard — manage verifications, API keys, and usage.",
+  description:
+    "Veridi client dashboard — manage verifications, API keys, and usage.",
 };
 
 export default function RootLayout({
@@ -26,7 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${syne.variable} ${jetbrainsMono.variable}`}>
-      <body className="font-heading antialiased">{children}</body>
+      <body className="font-heading antialiased">
+        {children}
+      </body>
     </html>
   );
 }

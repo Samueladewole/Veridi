@@ -2,7 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --void: #05080F;
+  --deep: #070D18;
+  --panel: #0C1220;
+  --panel2: #111827;
+  --panel3: #111E30;
+  --rail: #152033;
+  --border: #1A2840;
+  --border2: #243352;
+  --teal: #00D4B4;
+  --teal-dim: #009E87;
+  --teal-pale: rgba(0, 212, 180, 0.08);
+  --teal-glow: rgba(0, 212, 180, 0.2);
+  --gold: #F0A830;
+  --gold-pale: rgba(240, 168, 48, 0.08);
+  --red: #F04040;
+  --red-pale: rgba(240, 64, 64, 0.08);
+  --green: #22C55E;
+  --green-pale: rgba(34, 197, 94, 0.08);
+  --blue: #3B82F6;
+  --text: #E2EAF4;
+  --text2: #7A9AB8;
+  --text3: #334766;
+  --sidebar-w: 240px;
+}
+
+html,
 body {
-  background-color: #05080f;
-  color: #e2eaf4;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background-color: var(--void);
+  color: var(--text);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text3);
 }
