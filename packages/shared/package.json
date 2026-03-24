@@ -10,7 +10,12 @@
     "lint": "eslint src"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@veridi/database": "workspace:*",
+    "axios": "^1.13.6",
+    "zod": "^4.3.6"
   }
 }
