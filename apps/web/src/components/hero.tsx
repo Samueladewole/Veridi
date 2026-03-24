@@ -1,15 +1,15 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { ConstellationCanvas } from "./constellation-canvas";
 import { HeroVisual } from "./hero-visual";
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: (delay: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.8, ease: "easeOut", delay },
+    transition: { duration: 0.8, ease: "easeOut" as const, delay },
   }),
 };
 

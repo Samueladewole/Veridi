@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-
 interface StatProps {
   value: string;
   tealPart: string;
