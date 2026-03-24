@@ -18,6 +18,7 @@ WORKDIR /app
 COPY --from=deps /app ./
 COPY . .
 RUN pnpm --filter @veridi/database generate
+RUN pnpm --filter @veridi/database build
 RUN pnpm --filter @veridi/shared build
 RUN pnpm --filter @veridi/api build
 
@@ -27,7 +28,10 @@ ENV NODE_ENV=production
 COPY --from=builder /app/packages/api/dist ./dist
 COPY --from=builder /app/packages/api/package.json .
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/database ./packages/database
+COPY --from=builder /app/packages/database/dist ./packages/database/dist
+COPY --from=builder /app/packages/database/package.json ./packages/database/
+COPY --from=builder /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=builder /app/packages/database/prisma ./packages/database/prisma
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 EXPOSE 3000
