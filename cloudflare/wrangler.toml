@@ -1,0 +1,17 @@
+name = "veridi-api-gateway"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "production"
+
+[[kv_namespaces]]
+binding = "VERIDI_KEYS"
+id = "placeholder-keys-namespace-id"
+
+[[kv_namespaces]]
+binding = "VERIDI_RATE"
+id = "placeholder-rate-namespace-id"
+
+[triggers]
+crons = []

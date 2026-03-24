@@ -1,0 +1,51 @@
+[build]
+  builder = "nixpacks"
+
+[[services]]
+  name = "veridi-api"
+  [services.build]
+    buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @veridi/database generate && pnpm --filter @veridi/api build"
+    dockerfilePath = "packages/api/Dockerfile"
+  [services.deploy]
+    startCommand = "node dist/main.js"
+    healthcheckPath = "/health"
+    healthcheckTimeout = 30
+    restartPolicyType = "ON_FAILURE"
+    restartPolicyMaxRetries = 3
+  [services.variables]
+    PORT = "3000"
+    NODE_ENV = "production"
+
+[[services]]
+  name = "veridi-worker"
+  [services.build]
+    buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @veridi/worker build"
+    dockerfilePath = "packages/worker/Dockerfile"
+  [services.deploy]
+    startCommand = "node dist/main.js"
+    healthcheckPath = "/health"
+
+[[services]]
+  name = "veridi-web"
+  [services.build]
+    buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @veridi/web build"
+  [services.deploy]
+    startCommand = "pnpm --filter @veridi/web start"
+    healthcheckPath = "/"
+
+[[services]]
+  name = "veridi-dashboard"
+  [services.build]
+    buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @veridi/dashboard build"
+  [services.deploy]
+    startCommand = "pnpm --filter @veridi/dashboard start"
+    healthcheckPath = "/"
+
+[[services]]
+  name = "veridi-admin"
+  [services.build]
+    buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @veridi/admin build"
+  [services.deploy]
+    startCommand = "pnpm --filter @veridi/admin start"
+    healthcheckPath = "/"
+    # Cloudflare Zero Trust handles access restriction
