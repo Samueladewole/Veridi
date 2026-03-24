@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── ENUMS ────────────────────────────────────────────────────────
+
+enum VerificationType {
+  NIN
+  BVN
+  PASSPORT
+  DRIVERS_LICENCE
+  VOTERS_CARD
+  TIN
+}
+
+enum VerificationStatus {
+  PENDING
+  PROCESSING
+  VERIFIED
+  FAILED
+  ERROR
+  EXPIRED
+}
+
+enum ClientTier {
+  STARTER
+  GROWTH
+  SCALE
+  ENTERPRISE
+}
+
+enum ClientStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_APPROVAL
+  DEACTIVATED
+}
+
+enum ApiKeyScope {
+  VERIFY_ID
+  VERIFY_FACE
+  BACKGROUND_CHECK
+  ADDRESS
+  SCORE
+  ALL
+}
+
+enum WebhookStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  RETRYING
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum AuditAction {
+  CLIENT_APPROVED
+  CLIENT_SUSPENDED
+  KEY_ROTATED
+  KEY_REVOKED
+  VERIFICATION_OVERRIDDEN
+  DISPUTE_RESOLVED
+  PLAN_CHANGED
+  WEBHOOK_RETRIED
+  ALERT_ACKNOWLEDGED
+}
+
+// ── MODELS ───────────────────────────────────────────────────────
+
+model Client {
+  id               String        @id @default(cuid())
+  name             String
+  email            String        @unique
+  website          String?
+  tier             ClientTier    @default(STARTER)
+  status           ClientStatus  @default(PENDING_APPROVAL)
+  webhookUrl       String?
+  webhookSecret    String?
+  monthlyCallLimit Int           @default(100)
+  callsThisMonth   Int           @default(0)
+  mrr              Decimal       @default(0)
+  paystackCustomer String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  apiKeys       ApiKey[]
+  verifications VerificationRequest[]
+  usageRecords  UsageRecord[]
+  webhookEvents WebhookEvent[]
+  adminLogs     AdminLog[]
+}
+
+model ApiKey {
+  id          String        @id @default(cuid())
+  clientId    String
+  name        String
+  keyHash     String        @unique
+  keyPrefix   String // e.g. "vrd_live_sk_" — safe to display
+  scopes      ApiKeyScope[]
+  isLive      Boolean       @default(true)
+  ipAllowlist String[]      @default([])
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime      @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@index([keyHash])
+}
+
+model VerificationRequest {
+  id              String             @id @default(cuid())
+  clientId        String
+  apiKeyId        String
+  type            VerificationType
+  status          VerificationStatus @default(PENDING)
+  documentNumber  String? // NEVER store raw — only if already hashed
+  subjectToken    String // Argon2id hash of document number
+  consentTokenId  String
+  confidenceScore Int?
+  matchFields     String[]
+  sourceDatabase  String? // "nimc_nvs" | "nibss" | "frsc" etc
+  errorCode       String?
+  errorMessage    String?
+  requestIp       String?
+  responseMs      Int?
+  webhookFired    Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  resolvedAt      DateTime?
+  expiresAt       DateTime
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@index([subjectToken])
+  @@index([status])
+  @@index([createdAt])
+  @@index([type])
+}
+
+model ConsentRecord {
+  id           String    @id @default(cuid())
+  clientId     String
+  subjectToken String
+  purpose      String
+  grantedAt    DateTime  @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  ipAddress    String?
+
+  @@index([subjectToken])
+  @@index([clientId])
+}
+
+model SubjectIdentity {
+  id                String    @id @default(cuid())
+  subjectToken      String    @unique // Argon2id(NIN) — no raw PII
+  veridiScore       Int?
+  scoreUpdatedAt    DateTime?
+  verificationCount Int       @default(0)
+  lastVerifiedAt    DateTime?
+  createdAt         DateTime  @default(now())
+}
+
+model BackgroundCheck {
+  id           String             @id @default(cuid())
+  clientId     String
+  subjectToken String
+  checkTypes   String[] // ["employment", "criminal", "credential"]
+  status       VerificationStatus @default(PENDING)
+  reportUrl    String? // Cloudflare R2 signed URL to PDF
+  rawResults   Json? // encrypted JSON
+  requestedAt  DateTime           @default(now())
+  completedAt  DateTime?
+  expiresAt    DateTime
+
+  @@index([clientId])
+  @@index([subjectToken])
+  @@index([status])
+}
+
+model WebhookEvent {
+  id          String        @id @default(cuid())
+  clientId    String
+  eventType   String
+  payloadHash String // HMAC-SHA256 of payload
+  attempts    Int           @default(0)
+  status      WebhookStatus @default(PENDING)
+  lastAttempt DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime      @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
+}
+
+model UsageRecord {
+  id         String            @id @default(cuid())
+  clientId   String
+  apiKeyId   String
+  endpoint   String
+  type       VerificationType?
+  statusCode Int
+  responseMs Int
+  billed     Boolean           @default(false)
+  billedAt   DateTime?
+  createdAt  DateTime          @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@index([createdAt])
+  @@index([billed])
+}
+
+model AdminLog {
+  id         String      @id @default(cuid())
+  adminId    String
+  adminEmail String
+  action     AuditAction
+  entityType String
+  entityId   String
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+
+  client Client? @relation(fields: [entityId], references: [id])
+
+  @@index([entityId])
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  isSuperAdmin Boolean   @default(false)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+}
