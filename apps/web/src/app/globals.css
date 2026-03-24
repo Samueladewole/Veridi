@@ -2,7 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── TOKENS ───────────────────────────────────────────────────── */
+:root {
+  --void: #05080F;
+  --deep: #080D18;
+  --panel: #0C1220;
+  --panel2: #0F1828;
+  --rail: #152033;
+  --border: #1A2840;
+  --border2: #1F3050;
+  --teal: #00D4B4;
+  --teal-dim: #00A88F;
+  --teal-glow: rgba(0, 212, 180, 0.18);
+  --teal-pale: rgba(0, 212, 180, 0.06);
+  --gold: #F0A830;
+  --gold-glow: rgba(240, 168, 48, 0.15);
+  --slate: #94A3B8;
+  --slate2: #64748B;
+  --slate3: #334155;
+  --text: #E8EEF6;
+  --text2: #8FA8C8;
+  --white: #FFFFFF;
+}
+
 body {
-  background-color: #05080f;
-  color: #e2eaf4;
+  background: var(--void);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ── GRID TEXTURE ─────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 212, 180, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 180, 0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── TICKER ─────────────────────────────────────────────────────── */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker 30s linear infinite;
+}
+
+/* ── TRUST LAYER PULSE ──────────────────────────────────────────── */
+@keyframes layerPulse {
+  0%, 100% { border-color: var(--border2); box-shadow: none; }
+  50% { border-color: rgba(0, 212, 180, 0.3); box-shadow: 0 0 12px rgba(0, 212, 180, 0.08); }
+}
+
+/* ── HERO BADGE BLINK ───────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── STRIKE THROUGH ─────────────────────────────────────────────── */
+@keyframes strikeThru {
+  to { transform: scaleX(1); }
 }
