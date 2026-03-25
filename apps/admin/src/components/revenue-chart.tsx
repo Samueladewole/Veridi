@@ -11,19 +11,22 @@ import {
 } from "recharts";
 import { Card, CardHeader } from "@/components/card";
 
-interface MonthData {
+export interface MonthData {
   readonly month: string;
   readonly value: number;
 }
 
-const REVENUE_DATA: readonly MonthData[] = [
-  { month: "Oct", value: 1200 },
-  { month: "Nov", value: 1580 },
-  { month: "Dec", value: 2100 },
-  { month: "Jan", value: 2800 },
-  { month: "Feb", value: 3600 },
-  { month: "Mar", value: 4200 },
-];
+export interface RevenueSourceData {
+  readonly label: string;
+  readonly percentage: number;
+  readonly color: string;
+}
+
+interface RevenueChartProps {
+  readonly monthly: readonly MonthData[];
+  readonly sources: readonly RevenueSourceData[];
+  readonly momGrowth: string;
+}
 
 interface TooltipPayloadItem {
   readonly value: number;
@@ -53,26 +56,14 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   );
 }
 
-interface RevenueSource {
-  readonly label: string;
-  readonly percentage: number;
-  readonly color: string;
-}
-
-const REVENUE_SOURCES: readonly RevenueSource[] = [
-  { label: "Subscriptions", percentage: 62, color: "bg-amber" },
-  { label: "Pay-per-call", percentage: 28, color: "bg-blue" },
-  { label: "Background", percentage: 10, color: "bg-purple" },
-];
-
-export function RevenueChart() {
+export function RevenueChart({ monthly, sources, momGrowth }: RevenueChartProps) {
   return (
     <Card>
       <CardHeader
         title="Monthly Revenue"
         actions={
           <span className="font-mono text-[10px] text-green">
-            &uarr; +17.3% MoM
+            &uarr; {momGrowth} MoM
           </span>
         }
       />
@@ -81,7 +72,7 @@ export function RevenueChart() {
       <div className="px-4 py-4">
         <ResponsiveContainer width="100%" height={140}>
           <BarChart
-            data={[...REVENUE_DATA]}
+            data={[...monthly]}
             margin={{ top: 8, right: 4, left: -20, bottom: 0 }}
           >
             <XAxis
@@ -109,7 +100,7 @@ export function RevenueChart() {
               </linearGradient>
             </defs>
             <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={40}>
-              {REVENUE_DATA.map((entry) => (
+              {monthly.map((entry) => (
                 <Cell key={entry.month} fill="url(#amberBarGrad)" />
               ))}
             </Bar>
@@ -122,7 +113,7 @@ export function RevenueChart() {
         <div className="mb-1 font-mono text-[9px] uppercase tracking-[0.14em] text-text3">
           Revenue by source
         </div>
-        {REVENUE_SOURCES.map((source) => (
+        {sources.map((source) => (
           <div key={source.label} className="flex items-center gap-[10px]">
             <div className="min-w-[80px] font-mono text-[10px] text-text2">
               {source.label}

@@ -1,7 +1,7 @@
 type KpiColor = "amber" | "red" | "green" | "blue" | "purple";
 type TrendDirection = "up" | "down" | "same";
 
-interface KpiItem {
+export interface KpiItem {
   readonly label: string;
   readonly value: string;
   readonly sub: string;
@@ -11,49 +11,9 @@ interface KpiItem {
   readonly valueColor?: string;
 }
 
-const KPI_DATA: readonly KpiItem[] = [
-  {
-    label: "Total Clients",
-    value: "47",
-    sub: "Active accounts",
-    trend: "+4 this month",
-    trendDir: "up",
-  },
-  {
-    label: "Pending Queue",
-    value: "7",
-    sub: "Need review",
-    trend: "\u2191 3 from yesterday",
-    trendDir: "down",
-    color: "red",
-    valueColor: "text-red",
-  },
-  {
-    label: "API Calls Today",
-    value: "84.2k",
-    sub: "All clients",
-    trend: "\u2191 12% vs yesterday",
-    trendDir: "up",
-  },
-  {
-    label: "MRR",
-    value: "\u20A64.2M",
-    sub: "Monthly recurring",
-    trend: "\u2191 \u20A6620k MoM",
-    trendDir: "up",
-    color: "green",
-    valueColor: "text-green",
-  },
-  {
-    label: "Error Rate",
-    value: "0.8%",
-    sub: "Last 24 hours",
-    trend: "\u2192 Within SLA",
-    trendDir: "same",
-    color: "purple",
-    valueColor: "text-purple",
-  },
-];
+interface KpiGridProps {
+  readonly items: readonly KpiItem[];
+}
 
 const COLOR_LINES: Record<string, string> = {
   amber: "bg-amber/50",
@@ -69,10 +29,10 @@ const TREND_STYLES: Record<TrendDirection, string> = {
   same: "text-text3",
 };
 
-export function KpiGrid() {
+export function KpiGrid({ items }: KpiGridProps) {
   return (
     <div className="grid grid-cols-2 gap-[10px] sm:grid-cols-3 lg:grid-cols-5">
-      {KPI_DATA.map((kpi) => (
+      {items.map((kpi) => (
         <div
           key={kpi.label}
           className="relative overflow-hidden rounded border border-border bg-panel p-4"

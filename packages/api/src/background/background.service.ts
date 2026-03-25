@@ -7,12 +7,16 @@ import {
 import * as argon2 from "argon2";
 import { prisma, VerificationStatus } from "@veridi/database";
 import { ConsentService } from "../verification/services/consent.service";
+import { QueueService } from "../common/services/queue.service";
 
 @Injectable()
 export class BackgroundService {
   private readonly logger = new Logger(BackgroundService.name);
 
-  constructor(private readonly consentService: ConsentService) {}
+  constructor(
+    private readonly consentService: ConsentService,
+    private readonly queueService: QueueService,
+  ) {}
 
   async requestCheck(
     subjectNin: string,
@@ -35,7 +39,14 @@ export class BackgroundService {
       },
     });
 
-    // TODO: Queue BullMQ job for async processing
+    await this.queueService.addBackgroundCheckJob({
+      checkId: check.id,
+      clientId,
+      subjectToken,
+      checkTypes,
+      webhookUrl,
+    });
+
     this.logger.log(`Background check queued: ${check.id} [${checkTypes.join(", ")}]`);
 
     return {

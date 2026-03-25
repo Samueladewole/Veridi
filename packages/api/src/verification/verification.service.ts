@@ -10,6 +10,7 @@ import { ConsentService } from "./services/consent.service";
 import { NimcService } from "./services/nimc.service";
 import { NibssService } from "./services/nibss.service";
 import { DocumentService } from "./services/document.service";
+import { RedisService } from "../common/services/redis.service";
 
 export interface VerifyResult {
   verified: boolean;
@@ -21,6 +22,18 @@ export interface VerifyResult {
   ms: number;
 }
 
+/** TTL in seconds per verification type */
+const CACHE_TTL: Record<string, number> = {
+  [VerificationType.NIN]: 24 * 60 * 60,
+  [VerificationType.BVN]: 4 * 60 * 60,
+  [VerificationType.DRIVERS_LICENCE]: 24 * 60 * 60,
+  [VerificationType.PASSPORT]: 24 * 60 * 60,
+};
+
+function buildCacheKey(type: string, identifier: string): string {
+  return `verify:${type}:${identifier.slice(0, 16)}`;
+}
+
 @Injectable()
 export class VerificationService {
   private readonly logger = new Logger(VerificationService.name);
@@ -30,6 +43,7 @@ export class VerificationService {
     private readonly nimcService: NimcService,
     private readonly nibssService: NibssService,
     private readonly documentService: DocumentService,
+    private readonly redisService: RedisService,
   ) {}
 
   async verifyNIN(
@@ -44,7 +58,10 @@ export class VerificationService {
     const subjectToken = await argon2.hash(nin);
     const start = Date.now();
 
-    // TODO: Check Redis cache by subjectToken
+    const cached = await this.getCachedResult(VerificationType.NIN, nin);
+    if (cached) {
+      return { ...cached, ms: Date.now() - start };
+    }
 
     const result = await this.nimcService.verifyNIN(nin);
 
@@ -68,7 +85,7 @@ export class VerificationService {
 
     await this.recordUsage(clientId, apiKeyId, "/v1/verify/nin", VerificationType.NIN, 200, result.responseMs);
 
-    return {
+    const verifyResult: VerifyResult = {
       verified: result.verified,
       confidence: result.confidence,
       reference_id: verification.id,
@@ -77,6 +94,10 @@ export class VerificationService {
       cached: false,
       ms: Date.now() - start,
     };
+
+    await this.cacheResult(VerificationType.NIN, nin, verifyResult);
+
+    return verifyResult;
   }
 
   async verifyBVN(
@@ -90,6 +111,11 @@ export class VerificationService {
 
     const subjectToken = await argon2.hash(bvn);
     const start = Date.now();
+
+    const cached = await this.getCachedResult(VerificationType.BVN, bvn);
+    if (cached) {
+      return { ...cached, ms: Date.now() - start };
+    }
 
     const result = await this.nibssService.verifyBVN(bvn);
 
@@ -113,7 +139,7 @@ export class VerificationService {
 
     await this.recordUsage(clientId, apiKeyId, "/v1/verify/bvn", VerificationType.BVN, 200, result.responseMs);
 
-    return {
+    const verifyResult: VerifyResult = {
       verified: result.verified,
       confidence: result.confidence,
       reference_id: verification.id,
@@ -122,6 +148,10 @@ export class VerificationService {
       cached: false,
       ms: Date.now() - start,
     };
+
+    await this.cacheResult(VerificationType.BVN, bvn, verifyResult);
+
+    return verifyResult;
   }
 
   async verifyDriversLicence(
@@ -135,6 +165,11 @@ export class VerificationService {
 
     const subjectToken = await argon2.hash(licenceNumber);
     const start = Date.now();
+
+    const cached = await this.getCachedResult(VerificationType.DRIVERS_LICENCE, licenceNumber);
+    if (cached) {
+      return { ...cached, ms: Date.now() - start };
+    }
 
     const result = await this.documentService.verifyDriversLicence(licenceNumber);
 
@@ -158,7 +193,7 @@ export class VerificationService {
 
     await this.recordUsage(clientId, apiKeyId, "/v1/verify/drivers-licence", VerificationType.DRIVERS_LICENCE, 200, result.responseMs);
 
-    return {
+    const verifyResult: VerifyResult = {
       verified: result.verified,
       confidence: result.confidence,
       reference_id: verification.id,
@@ -167,6 +202,10 @@ export class VerificationService {
       cached: false,
       ms: Date.now() - start,
     };
+
+    await this.cacheResult(VerificationType.DRIVERS_LICENCE, licenceNumber, verifyResult);
+
+    return verifyResult;
   }
 
   async verifyPassport(
@@ -180,6 +219,11 @@ export class VerificationService {
 
     const subjectToken = await argon2.hash(passportNumber);
     const start = Date.now();
+
+    const cached = await this.getCachedResult(VerificationType.PASSPORT, passportNumber);
+    if (cached) {
+      return { ...cached, ms: Date.now() - start };
+    }
 
     const result = await this.documentService.verifyPassport(passportNumber);
 
@@ -203,7 +247,7 @@ export class VerificationService {
 
     await this.recordUsage(clientId, apiKeyId, "/v1/verify/passport", VerificationType.PASSPORT, 200, result.responseMs);
 
-    return {
+    const verifyResult: VerifyResult = {
       verified: result.verified,
       confidence: result.confidence,
       reference_id: verification.id,
@@ -212,6 +256,10 @@ export class VerificationService {
       cached: false,
       ms: Date.now() - start,
     };
+
+    await this.cacheResult(VerificationType.PASSPORT, passportNumber, verifyResult);
+
+    return verifyResult;
   }
 
   async getVerification(referenceId: string, clientId: string) {
@@ -238,6 +286,29 @@ export class VerificationService {
       created_at: verification.createdAt.toISOString(),
       resolved_at: verification.resolvedAt?.toISOString() ?? null,
     };
+  }
+
+  private async getCachedResult(
+    type: string,
+    identifier: string,
+  ): Promise<VerifyResult | null> {
+    const key = buildCacheKey(type, identifier);
+    const cached = await this.redisService.get<VerifyResult>(key);
+    if (cached) {
+      this.logger.debug(`Cache HIT for ${key}`);
+      return { ...cached, cached: true };
+    }
+    return null;
+  }
+
+  private async cacheResult(
+    type: string,
+    identifier: string,
+    result: VerifyResult,
+  ): Promise<void> {
+    const key = buildCacheKey(type, identifier);
+    const ttl = CACHE_TTL[type] ?? 24 * 60 * 60;
+    await this.redisService.set(key, result, ttl);
   }
 
   private async recordUsage(

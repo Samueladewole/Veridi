@@ -1,4 +1,4 @@
-import { endpointBreakdowns } from "@/lib/mock-data";
+import type { EndpointBreakdown as EndpointBreakdownData } from "@/lib/mock-data";
 import { PlanMeter } from "./plan-meter";
 
 function BreakdownItem({
@@ -30,7 +30,7 @@ function BreakdownItem({
   );
 }
 
-export function EndpointBreakdown() {
+export function EndpointBreakdown({ data }: { data: EndpointBreakdownData[] }) {
   return (
     <div className="overflow-hidden rounded-md border border-border bg-panel">
       {/* Header */}
@@ -47,7 +47,7 @@ export function EndpointBreakdown() {
 
       {/* Breakdown list */}
       <div className="flex flex-col gap-2.5 px-5 py-4">
-        {endpointBreakdowns.map((item) => (
+        {data.map((item) => (
           <BreakdownItem key={item.name} {...item} />
         ))}
       </div>

@@ -1,5 +1,4 @@
-import { recentCalls } from "@/lib/mock-data";
-import type { VerificationType, VerificationStatus } from "@/lib/mock-data";
+import type { RecentCall, VerificationType, VerificationStatus } from "@/lib/mock-data";
 
 const typeStyles: Record<VerificationType, string> = {
   NIN: "border-teal/15 bg-teal/10 text-teal",
@@ -36,7 +35,7 @@ function LatencyBar({ latency }: { latency: number }) {
   );
 }
 
-export function RecentCallsTable() {
+export function RecentCallsTable({ data }: { data: RecentCall[] }) {
   return (
     <div className="overflow-hidden rounded-md border border-border bg-panel">
       {/* Header */}
@@ -72,7 +71,7 @@ export function RecentCallsTable() {
             </tr>
           </thead>
           <tbody>
-            {recentCalls.map((call) => (
+            {data.map((call) => (
               <tr
                 key={call.reference}
                 className="border-b border-border transition-colors last:border-b-0 hover:bg-white/[0.02]"

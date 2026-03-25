@@ -2,7 +2,7 @@ import { Card, CardHeader, CardHeaderButton } from "@/components/card";
 
 type HealthStatus = "ok" | "warn" | "down";
 
-interface DataSource {
+export interface DataSourceItem {
   readonly name: string;
   readonly description: string;
   readonly status: HealthStatus;
@@ -11,48 +11,9 @@ interface DataSource {
   readonly uptimeStatus: "ok" | "warn";
 }
 
-const DATA_SOURCES: readonly DataSource[] = [
-  {
-    name: "NIMC NVS API",
-    description: "NIN Verification \u00B7 Direct licence",
-    status: "ok",
-    latency: "342ms",
-    uptime: "99.9%",
-    uptimeStatus: "ok",
-  },
-  {
-    name: "Smile Identity",
-    description: "Biometric relay \u00B7 Phase 1",
-    status: "warn",
-    latency: "1,240ms",
-    uptime: "97.2%",
-    uptimeStatus: "warn",
-  },
-  {
-    name: "NIBSS / BVN",
-    description: "BVN Verification \u00B7 Partnership",
-    status: "ok",
-    latency: "580ms",
-    uptime: "99.7%",
-    uptimeStatus: "ok",
-  },
-  {
-    name: "FRSC",
-    description: "Driver\u2019s Licence \u00B7 API",
-    status: "ok",
-    latency: "620ms",
-    uptime: "98.9%",
-    uptimeStatus: "ok",
-  },
-  {
-    name: "Paystack",
-    description: "Billing \u00B7 Subscriptions",
-    status: "ok",
-    latency: "180ms",
-    uptime: "99.99%",
-    uptimeStatus: "ok",
-  },
-];
+interface DataSourceHealthProps {
+  readonly sources: readonly DataSourceItem[];
+}
 
 const DOT_STYLES: Record<HealthStatus, string> = {
   ok: "bg-green shadow-[0_0_5px_#10B981]",
@@ -65,16 +26,22 @@ const UPTIME_STYLES: Record<string, string> = {
   warn: "text-amber",
 };
 
-export function DataSourceHealth() {
+export function DataSourceHealth({ sources }: DataSourceHealthProps) {
+  const degradedCount = sources.filter((s) => s.status !== "ok").length;
+
   return (
     <Card>
       <CardHeader
         title="Data Source Health"
-        badges={[{ label: "1 Degraded", variant: "amber" }]}
+        badges={
+          degradedCount > 0
+            ? [{ label: `${degradedCount} Degraded`, variant: "amber" as const }]
+            : [{ label: "All Healthy", variant: "green" as const }]
+        }
         actions={<CardHeaderButton>Manage</CardHeaderButton>}
       />
       <div className="flex flex-col gap-[6px] p-4">
-        {DATA_SOURCES.map((source) => (
+        {sources.map((source) => (
           <div
             key={source.name}
             className="flex items-center gap-[10px] rounded-[3px] border border-border bg-panel-2 px-3 py-[9px]"

@@ -4,9 +4,10 @@ import { useState } from "react";
 import { Card, CardHeader, CardHeaderButton } from "@/components/card";
 import { ClientRow } from "@/components/client-row";
 import {
-  CLIENTS,
+  CLIENTS as FALLBACK_CLIENTS,
   FILTER_TABS,
   type FilterStatus,
+  type ClientRecord,
 } from "@/components/clients-data";
 
 const TABLE_HEADERS = [
@@ -23,11 +24,20 @@ const TABLE_HEADERS = [
   "Actions",
 ] as const;
 
-export function ClientsTableFull() {
+interface ClientsTableFullProps {
+  readonly initialClients?: readonly ClientRecord[];
+}
+
+export function ClientsTableFull({ initialClients }: ClientsTableFullProps) {
+  const allClients =
+    initialClients && initialClients.length > 0
+      ? initialClients
+      : FALLBACK_CLIENTS;
+
   const [filter, setFilter] = useState<FilterStatus>("all");
   const [search, setSearch] = useState("");
 
-  const filtered = CLIENTS.filter((client) => {
+  const filtered = allClients.filter((client) => {
     const matchesStatus = filter === "all" || client.status === filter;
     const lowerSearch = search.toLowerCase();
     const matchesSearch =
@@ -38,10 +48,10 @@ export function ClientsTableFull() {
   });
 
   const counts = {
-    all: CLIENTS.length,
-    active: CLIENTS.filter((c) => c.status === "active").length,
-    pending: CLIENTS.filter((c) => c.status === "pending").length,
-    suspended: CLIENTS.filter((c) => c.status === "suspended").length,
+    all: allClients.length,
+    active: allClients.filter((c) => c.status === "active").length,
+    pending: allClients.filter((c) => c.status === "pending").length,
+    suspended: allClients.filter((c) => c.status === "suspended").length,
   };
 
   return (

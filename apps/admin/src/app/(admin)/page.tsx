@@ -6,30 +6,68 @@ import { ClientTable } from "@/components/client-table";
 import { LiveFeed } from "@/components/live-feed";
 import { RevenueChart } from "@/components/revenue-chart";
 import { AuditLog } from "@/components/audit-log";
+import {
+  fetchKpiData,
+  fetchRecentClients,
+  fetchQueueItems,
+  fetchAuditLog,
+  fetchSystemStatus,
+  fetchDataSources,
+  fetchRevenueData,
+} from "@/lib/dashboard-data";
 
-export default function AdminOverviewPage() {
+export default async function AdminOverviewPage() {
+  const [
+    kpiItems,
+    clientData,
+    queueData,
+    auditEntries,
+    services,
+    dataSources,
+    revenueData,
+  ] = await Promise.all([
+    fetchKpiData(),
+    fetchRecentClients(),
+    fetchQueueItems(),
+    fetchAuditLog(),
+    fetchSystemStatus(),
+    fetchDataSources(),
+    fetchRevenueData(),
+  ]);
+
   return (
     <>
-      <SystemStatus />
-      <KpiGrid />
+      <SystemStatus services={services} />
+      <KpiGrid items={kpiItems} />
 
       {/* Two-column: Queue + Data Sources */}
       <div className="grid grid-cols-1 gap-[14px] lg:grid-cols-2">
-        <VerificationQueue />
-        <DataSourceHealth />
+        <VerificationQueue
+          items={queueData.items}
+          pendingCount={queueData.pendingCount}
+        />
+        <DataSourceHealth sources={dataSources} />
       </div>
 
       {/* Full-width: Client Accounts */}
-      <ClientTable />
+      <ClientTable
+        clients={clientData.clients}
+        activeCount={clientData.activeCount}
+        pendingCount={clientData.pendingCount}
+      />
 
       {/* Two-column: Live Feed + Revenue */}
       <div className="grid grid-cols-1 gap-[14px] lg:grid-cols-2">
         <LiveFeed />
-        <RevenueChart />
+        <RevenueChart
+          monthly={revenueData.monthly}
+          sources={revenueData.sources}
+          momGrowth={revenueData.momGrowth}
+        />
       </div>
 
       {/* Full-width: Audit Log */}
-      <AuditLog />
+      <AuditLog entries={auditEntries} />
     </>
   );
 }

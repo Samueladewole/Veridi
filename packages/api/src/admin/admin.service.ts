@@ -10,12 +10,35 @@ import {
   AuditAction,
 } from "@veridi/database";
 import type { Prisma } from "@prisma/client";
+import { RedisService } from "../common/services/redis.service";
+
+export interface DashboardStats {
+  total_clients: number;
+  active_clients: number;
+  calls_today: number;
+  calls_month: number;
+  mrr: number;
+  error_rate_24h: number;
+  queue_depth: number;
+  failed_webhooks: number;
+}
+
+const DASHBOARD_STATS_KEY = "admin:dashboard:stats";
+const DASHBOARD_STATS_TTL = 30; // 30 seconds
 
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
 
-  async getDashboardStats() {
+  constructor(private readonly redisService: RedisService) {}
+
+  async getDashboardStats(): Promise<DashboardStats> {
+    const cached = await this.redisService.get<DashboardStats>(DASHBOARD_STATS_KEY);
+    if (cached) {
+      this.logger.debug("Dashboard stats cache HIT");
+      return cached;
+    }
+
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -29,7 +52,7 @@ export class AdminService {
         prisma.webhookEvent.count({ where: { status: "FAILED" } }),
       ]);
 
-    return {
+    const stats: DashboardStats = {
       total_clients: totalClients,
       active_clients: activeClients,
       calls_today: callsToday,
@@ -39,6 +62,10 @@ export class AdminService {
       queue_depth: 0, // TODO: Read from BullMQ
       failed_webhooks: failedWebhooks,
     };
+
+    await this.redisService.set(DASHBOARD_STATS_KEY, stats, DASHBOARD_STATS_TTL);
+
+    return stats;
   }
 
   async getClients(
@@ -93,6 +120,12 @@ export class AdminService {
   }
 
   async suspendClient(clientId: string, adminId: string, adminEmail: string) {
+    // Fetch active API key hashes before revoking so we can invalidate cache
+    const activeKeys = await prisma.apiKey.findMany({
+      where: { clientId, revokedAt: null },
+      select: { keyHash: true },
+    });
+
     await prisma.$transaction([
       prisma.client.update({
         where: { id: clientId },
@@ -103,6 +136,11 @@ export class AdminService {
         data: { revokedAt: new Date() },
       }),
     ]);
+
+    // Invalidate cached API keys for this client
+    await Promise.all(
+      activeKeys.map((key) => this.redisService.del(`apikey:${key.keyHash}`)),
+    );
 
     await this.logAction(adminId, adminEmail, AuditAction.CLIENT_SUSPENDED, "Client", clientId);
     this.logger.log(`Client ${clientId} suspended by ${adminEmail}`);

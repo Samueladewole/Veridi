@@ -1,6 +1,8 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { AppConfigModule } from "./config";
+import { RedisModule } from "./common/redis.module";
+import { QueueModule } from "./common/services/queue.module";
 import { AuthModule } from "./auth/auth.module";
 import { HealthModule } from "./health/health.module";
 import { VerificationModule } from "./verification/verification.module";
@@ -16,6 +18,8 @@ import { RequestLoggerMiddleware } from "./common/middleware/request-logger.midd
 @Module({
   imports: [
     AppConfigModule,
+    RedisModule,
+    QueueModule,
     ThrottlerModule.forRoot([
       { name: "short", ttl: 1000, limit: 10 },
       { name: "medium", ttl: 60000, limit: 100 },

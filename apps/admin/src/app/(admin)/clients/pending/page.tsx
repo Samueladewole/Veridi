@@ -1,11 +1,8 @@
-import { PageStub } from "@/components/page-stub";
+import { ClientsTableFull } from "@/components/clients-table-full";
+import { fetchAllClients } from "@/lib/clients-data-fetcher";
 
-export default function PendingApprovalPage() {
-  return (
-    <PageStub
-      title="Pending Approval"
-      description="New client applications awaiting KYB verification. Review business registration documents, director NINs, and intended API usage before granting access."
-      icon="\u2713"
-    />
-  );
+export default async function PendingApprovalPage() {
+  const clients = await fetchAllClients({ status: "pending", limit: 50 });
+
+  return <ClientsTableFull initialClients={clients} />;
 }

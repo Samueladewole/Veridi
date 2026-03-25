@@ -1,4 +1,6 @@
-import { PageStub } from "@/components/page-stub";
+import { notFound } from "next/navigation";
+import { fetchClientDetail } from "@/lib/clients-data-fetcher";
+import { ClientDetailView } from "@/components/client-detail-view";
 
 interface ClientDetailPageProps {
   readonly params: Promise<{ id: string }>;
@@ -8,12 +10,11 @@ export default async function ClientDetailPage({
   params,
 }: ClientDetailPageProps) {
   const { id } = await params;
+  const client = await fetchClientDetail(id);
 
-  return (
-    <PageStub
-      title={`Client Detail \u2014 ${id}`}
-      description="Full client profile including API usage analytics, billing history, verification logs, and account configuration. Manage keys, plans, and permissions."
-      icon="\uD83C\uDFE2"
-    />
-  );
+  if (!client) {
+    notFound();
+  }
+
+  return <ClientDetailView client={client} />;
 }

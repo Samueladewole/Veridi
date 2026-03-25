@@ -1,0 +1,11 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "..",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+  "testEnvironment": "node",
+  "moduleNameMapper": {
+    "^@veridi/database$": "<rootDir>/../database/src/index.ts",
+    "^@veridi/shared$": "<rootDir>/../shared/src/index.ts"
+  }
+}

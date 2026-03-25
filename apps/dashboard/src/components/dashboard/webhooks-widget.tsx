@@ -1,4 +1,3 @@
-import { webhookDeliveries } from "@/lib/mock-data";
 import type { WebhookDelivery } from "@/lib/mock-data";
 
 function WebhookRow({ delivery }: { delivery: WebhookDelivery }) {
@@ -24,7 +23,7 @@ function WebhookRow({ delivery }: { delivery: WebhookDelivery }) {
   );
 }
 
-export function WebhooksWidget() {
+export function WebhooksWidget({ data }: { data: WebhookDelivery[] }) {
   return (
     <div className="overflow-hidden rounded-md border border-border bg-panel">
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -36,7 +35,7 @@ export function WebhooksWidget() {
         </div>
       </div>
       <div className="flex flex-col gap-2 px-4 py-3.5">
-        {webhookDeliveries.map((delivery, idx) => (
+        {data.map((delivery, idx) => (
           <WebhookRow key={idx} delivery={delivery} />
         ))}
       </div>

@@ -1,4 +1,3 @@
-import { kpiCards } from "@/lib/mock-data";
 import type { KpiCard } from "@/lib/mock-data";
 import { Icon } from "@/components/icons";
 
@@ -66,10 +65,10 @@ function KpiCardItem({ card }: { card: KpiCard }) {
   );
 }
 
-export function KpiCards() {
+export function KpiCards({ data }: { data: KpiCard[] }) {
   return (
     <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {kpiCards.map((card) => (
+      {data.map((card) => (
         <KpiCardItem key={card.label} card={card} />
       ))}
     </div>

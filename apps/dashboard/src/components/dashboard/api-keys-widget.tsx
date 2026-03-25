@@ -1,4 +1,3 @@
-import { apiKeys } from "@/lib/mock-data";
 import type { ApiKey } from "@/lib/mock-data";
 
 function KeyRow({ apiKey }: { apiKey: ApiKey }) {
@@ -43,7 +42,7 @@ function KeyRow({ apiKey }: { apiKey: ApiKey }) {
   );
 }
 
-export function ApiKeysWidget() {
+export function ApiKeysWidget({ data }: { data: ApiKey[] }) {
   return (
     <div className="overflow-hidden rounded-md border border-border bg-panel">
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -54,7 +53,7 @@ export function ApiKeysWidget() {
           + New Key
         </button>
       </div>
-      {apiKeys.map((key) => (
+      {data.map((key) => (
         <KeyRow key={key.name} apiKey={key} />
       ))}
     </div>

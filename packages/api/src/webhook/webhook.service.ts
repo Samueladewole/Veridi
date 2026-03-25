@@ -2,10 +2,13 @@ import { Injectable, Logger } from "@nestjs/common";
 import { createHmac } from "crypto";
 import axios from "axios";
 import { prisma } from "@veridi/database";
+import { QueueService } from "../common/services/queue.service";
 
 @Injectable()
 export class WebhookService {
   private readonly logger = new Logger(WebhookService.name);
+
+  constructor(private readonly queueService: QueueService) {}
 
   async sendTestWebhook(clientId: string) {
     const client = await prisma.client.findUniqueOrThrow({
@@ -77,7 +80,17 @@ export class WebhookService {
         where: { id: event.id },
         data: { status: "RETRYING", attempts: 1, lastAttempt: new Date() },
       });
-      // TODO: Queue for retry via BullMQ
+
+      await this.queueService.addWebhookDeliveryJob({
+        eventId: event.id,
+        clientId,
+        webhookUrl: client.webhookUrl,
+        webhookSecret: client.webhookSecret || "",
+        eventType,
+        payload,
+      });
+
+      this.logger.log(`Webhook delivery queued for retry: event=${event.id}`);
     }
   }
 

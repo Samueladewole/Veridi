@@ -1,19 +1,7 @@
-"use client";
-
-import { useState } from "react";
+import { Suspense } from "react";
+import { LoginForm } from "@/components/login-form";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    // Auth integration placeholder
-    setTimeout(() => setLoading(false), 1500);
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-void px-4">
       {/* Background subtle gradient */}
@@ -44,54 +32,17 @@ export default function LoginPage() {
             Authorized personnel only. All sessions are logged.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Email */}
-            <div className="flex flex-col gap-[6px]">
-              <label
-                htmlFor="email"
-                className="font-mono text-[9px] uppercase tracking-[0.14em] text-text3"
-              >
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@veridi.africa"
-                required
-                className="rounded-[3px] border border-border-2 bg-deep px-3 py-[10px] font-mono text-[12px] text-text1 outline-none transition-colors placeholder:text-text3 focus:border-amber"
-              />
-            </div>
-
-            {/* Password */}
-            <div className="flex flex-col gap-[6px]">
-              <label
-                htmlFor="password"
-                className="font-mono text-[9px] uppercase tracking-[0.14em] text-text3"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                className="rounded-[3px] border border-border-2 bg-deep px-3 py-[10px] font-mono text-[12px] text-text1 outline-none transition-colors placeholder:text-text3 focus:border-amber"
-              />
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-1 rounded-[3px] bg-amber px-4 py-[10px] font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-void transition-colors hover:bg-[#FCD34D] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Authenticating..." : "Sign In"}
-            </button>
-          </form>
+          <Suspense
+            fallback={
+              <div className="flex flex-col gap-4">
+                <div className="h-[72px] animate-pulse rounded bg-border/30" />
+                <div className="h-[72px] animate-pulse rounded bg-border/30" />
+                <div className="mt-1 h-[40px] animate-pulse rounded bg-amber/30" />
+              </div>
+            }
+          >
+            <LoginForm />
+          </Suspense>
         </div>
 
         {/* Footer */}

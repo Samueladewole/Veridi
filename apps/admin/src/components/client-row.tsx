@@ -1,7 +1,31 @@
+"use client";
+
+import { useTransition } from "react";
 import type { ClientRecord } from "@/components/clients-data";
 import { PLAN_STYLES, STATUS_STYLES } from "@/components/clients-data";
+import { approveClient, suspendClient } from "@/lib/actions";
 
 export function ClientRow({ client }: { readonly client: ClientRecord }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleApprove = () => {
+    startTransition(async () => {
+      await approveClient(client.id);
+    });
+  };
+
+  const handleSuspend = () => {
+    startTransition(async () => {
+      await suspendClient(client.id);
+    });
+  };
+
+  const handleReactivate = () => {
+    startTransition(async () => {
+      await approveClient(client.id);
+    });
+  };
+
   return (
     <tr className="cursor-pointer border-b border-border transition-colors last:border-b-0 hover:bg-white/[0.015]">
       <td className="px-[14px] py-[10px] text-[11px] text-text1">
@@ -51,18 +75,30 @@ export function ClientRow({ client }: { readonly client: ClientRecord }) {
       <td className="px-[14px] py-[10px]">
         <div className="flex gap-[6px]">
           {client.status === "pending" && (
-            <button className="rounded-[2px] border border-green/20 bg-green-pale px-[10px] py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-green transition-colors hover:bg-green hover:text-void">
-              Approve
+            <button
+              onClick={handleApprove}
+              disabled={isPending}
+              className="rounded-[2px] border border-green/20 bg-green-pale px-[10px] py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-green transition-colors hover:bg-green hover:text-void disabled:opacity-50"
+            >
+              {isPending ? "..." : "Approve"}
             </button>
           )}
           {client.status === "active" && (
-            <button className="rounded-[2px] border border-red/20 bg-red-pale px-[10px] py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-red transition-colors hover:bg-red hover:text-void">
-              Suspend
+            <button
+              onClick={handleSuspend}
+              disabled={isPending}
+              className="rounded-[2px] border border-red/20 bg-red-pale px-[10px] py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-red transition-colors hover:bg-red hover:text-void disabled:opacity-50"
+            >
+              {isPending ? "..." : "Suspend"}
             </button>
           )}
           {client.status === "suspended" && (
-            <button className="rounded-[2px] border border-green/20 bg-green-pale px-[10px] py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-green transition-colors hover:bg-green hover:text-void">
-              Reactivate
+            <button
+              onClick={handleReactivate}
+              disabled={isPending}
+              className="rounded-[2px] border border-green/20 bg-green-pale px-[10px] py-1 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-green transition-colors hover:bg-green hover:text-void disabled:opacity-50"
+            >
+              {isPending ? "..." : "Reactivate"}
             </button>
           )}
           <button className="rounded-[2px] border border-border-2 bg-transparent px-[10px] py-1 font-mono text-[9px] text-text2 transition-colors hover:border-amber hover:text-amber">

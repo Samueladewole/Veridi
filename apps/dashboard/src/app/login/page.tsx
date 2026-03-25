@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 function VeridiLogo() {
   return (
@@ -21,18 +22,45 @@ function VeridiLogo() {
   );
 }
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+interface LoginResponse {
+  success: boolean;
+  error?: string;
+  client?: { name: string; tier: string };
+}
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+export default function LoginPage() {
+  const router = useRouter();
+  const [apiKey, setApiKey] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    // Simulated login - in production this would call the auth API
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 1000);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey, email: email || undefined }),
+      });
+
+      const data: LoginResponse = await res.json() as LoginResponse;
+
+      if (!data.success) {
+        setError(data.error ?? "Login failed. Please check your API key.");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("Network error. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -51,16 +79,43 @@ export default function LoginPage() {
             Sign in to your account
           </h2>
           <p className="mb-6 font-mono text-[11px] text-text-3">
-            Access your verification dashboard
+            Enter your API key to access the dashboard
           </p>
 
+          {error && (
+            <div className="mb-4 rounded border border-red/20 bg-red-pale px-3.5 py-2.5 font-mono text-[11px] text-red">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label
+                htmlFor="apiKey"
+                className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.14em] text-text-2"
+              >
+                API Key
+              </label>
+              <input
+                id="apiKey"
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="vrd_live_sk_..."
+                required
+                className="w-full rounded border border-border-2 bg-panel px-3.5 py-2.5 font-mono text-xs text-text-1 outline-none transition-colors placeholder:text-text-3 focus:border-teal focus:ring-1 focus:ring-teal/20"
+              />
+              <p className="mt-1 font-mono text-[9px] text-text-3">
+                Find your API key in your welcome email or ask your team admin
+              </p>
+            </div>
+
             <div>
               <label
                 htmlFor="email"
                 className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.14em] text-text-2"
               >
-                Email
+                Email <span className="normal-case text-text-3">(optional)</span>
               </label>
               <input
                 id="email"
@@ -68,38 +123,19 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
-                required
-                className="w-full rounded border border-border-2 bg-panel px-3.5 py-2.5 font-mono text-xs text-text-1 outline-none transition-colors placeholder:text-text-3 focus:border-teal focus:ring-1 focus:ring-teal/20"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.14em] text-text-2"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
                 className="w-full rounded border border-border-2 bg-panel px-3.5 py-2.5 font-mono text-xs text-text-1 outline-none transition-colors placeholder:text-text-3 focus:border-teal focus:ring-1 focus:ring-teal/20"
               />
             </div>
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !apiKey}
               className="mt-1 flex w-full items-center justify-center rounded bg-teal py-2.5 font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-void transition-all hover:bg-[#00FFDD] disabled:opacity-60"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-3 w-3 animate-spin rounded-full border-2 border-void border-t-transparent" />
-                  Signing in...
+                  Authenticating...
                 </span>
               ) : (
                 "Sign in"
@@ -109,17 +145,19 @@ export default function LoginPage() {
 
           <div className="mt-5 text-center">
             <a
-              href="#"
+              href="https://docs.veridi.africa"
+              target="_blank"
+              rel="noopener noreferrer"
               className="font-mono text-[10px] text-text-3 transition-colors hover:text-teal"
             >
-              Forgot your password?
+              Need help? View API documentation
             </a>
           </div>
         </div>
 
         <p className="mt-6 text-center font-mono text-[9px] text-text-3">
           Don&apos;t have an account?{" "}
-          <a href="#" className="text-teal transition-colors hover:text-[#00FFDD]">
+          <a href="https://veridi.io" className="text-teal transition-colors hover:text-[#00FFDD]">
             Contact sales
           </a>
         </p>

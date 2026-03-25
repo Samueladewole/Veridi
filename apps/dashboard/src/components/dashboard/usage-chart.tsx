@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { chartBars } from "@/lib/mock-data";
+import type { ChartBar } from "@/lib/mock-data";
 
 interface ChartTooltipProps {
   active?: boolean;
@@ -61,13 +61,13 @@ function PeriodToggle({
   );
 }
 
-const formattedData = chartBars.map((bar) => ({
-  ...bar,
-  label: `${bar.hour}h`,
-}));
-
-export function UsageChart() {
+export function UsageChart({ data }: { data: ChartBar[] }) {
   const [activeTab, setActiveTab] = useState("Hourly");
+
+  const formattedData = data.map((bar) => ({
+    ...bar,
+    label: `${bar.hour}h`,
+  }));
 
   return (
     <div className="overflow-hidden rounded-md border border-border bg-panel">
